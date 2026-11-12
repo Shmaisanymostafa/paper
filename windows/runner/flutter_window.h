@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "win32_window.h"
+#include "document_bridge.h"
 
 // A window that does nothing but host a Flutter view.
 class FlutterWindow : public Win32Window {
@@ -14,6 +15,7 @@ class FlutterWindow : public Win32Window {
   // Creates a new FlutterWindow hosting a Flutter view running |project|.
   explicit FlutterWindow(const flutter::DartProject& project);
   virtual ~FlutterWindow();
+  bool OpenDocuments(const std::vector<std::wstring>& paths);
 
  protected:
   // Win32Window:
@@ -25,6 +27,7 @@ class FlutterWindow : public Win32Window {
  private:
   // The project to run.
   flutter::DartProject project_;
+  DocumentBridge documents_;
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;

@@ -9,6 +9,10 @@ FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 
 FlutterWindow::~FlutterWindow() {}
 
+bool FlutterWindow::OpenDocuments(const std::vector<std::wstring>& paths) {
+  return documents_.Accept(paths);
+}
+
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;
@@ -25,6 +29,8 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  documents_.Connect(flutter_controller_->engine()->messenger());
+  if (!SetPropW(GetHandle(), kPaperEndpoint, reinterpret_cast<HANDLE>(1))) return false;
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -40,6 +46,8 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  RemovePropW(GetHandle(), kPaperEndpoint);
+  documents_.Disconnect();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -51,6 +59,14 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (message == WM_COPYDATA) {
+    std::vector<std::wstring> paths;
+    if (!DecodePaperPaths(reinterpret_cast<const COPYDATASTRUCT*>(lparam), &paths) ||
+        !documents_.Accept(paths)) return 0;
+    ShowWindow(hwnd, IsIconic(hwnd) ? SW_RESTORE : SW_SHOW);
+    SetForegroundWindow(hwnd);
+    return 1;
+  }
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

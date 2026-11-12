@@ -11,7 +11,7 @@ Current verification: Dart adapter tests and analyzer only. Native cold/warm
 launch, multiple-file, denied-file, sandbox and installed-app association tests
 remain required. This is not a verified macOS handler release.
 
-Windows and Linux adapters/packaging remain pending; see mobile continuation below. On iOS,
+Windows and Linux source adapters are now present; see their platform checklists. On iOS,
 Open In / document import does not imply a universal default PDF reader setting.
 On Windows, the selected default application's ProgID controls the PDF file
 icon; Cave Paper cannot promise its icon while another app is the default.
@@ -32,5 +32,4 @@ acceptance evidence yet. Dart protocol tests cover queued cold paths and warm
 open delivery; they do not establish native platform correctness.
 
 Approved art is integrated into the Flutter interface; platform icon resources
-remain pending. Windows/Linux handlers are still pending, including safe
-single-instance forwarding so concurrent writers cannot corrupt library state.
+remain pending. Windows/Linux source handlers now use single-instance forwarding; native compilation and runtime checks remain pending.

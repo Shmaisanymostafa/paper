@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Cave Paper
+Comment=Offline PDF reader
+Exec=cave_paper %F
+Icon=technology.cave.paper
+Terminal=false
+MimeType=application/pdf;
+Categories=Office;Viewer;
+StartupNotify=true
