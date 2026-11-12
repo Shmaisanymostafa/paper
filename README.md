@@ -7,11 +7,10 @@ Windows and Linux. The first version keeps original PDFs unchanged and stores
 reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
-> **Status: development source, not a qualified beta.** The current authoring
-> environment has no Flutter SDK and blocks SDK/package downloads. Flutter
-> analysis, widget tests, native integration and builds have **not run** here.
-> Native runners must be generated with the provided bootstrap tool. See
-> [validation status](docs/VALIDATION.md) before using or distributing a build.
+> **Status: development source, not a qualified beta.** Mac validation now passes
+> static analysis and 28 automated tests. Native runners and locked dependencies
+> are included. Native installation, device acceptance and public repository
+> publication remain blocked or pending. See [validation status](docs/VALIDATION.md).
 
 ## Implemented in source
 

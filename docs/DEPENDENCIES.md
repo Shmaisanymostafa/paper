@@ -33,10 +33,12 @@ wrapper's XCFramework packaging; it must be audited independently. Preserve the
 exact package lock, archive URLs, SHA256s, build hooks, native binary versions and
 all license texts for each target, and check native vulnerabilities before use.
 
-No native library/archive was downloaded, reviewed or distributed in this task.
-The shell is blocked from pub.dev, Flutter storage and GitHub downloads. The
-source package can be made public, but do **not** publish an installer until the
-complete native license and security review is done.
+Mac continuation resolved 93 packages and committed their lockfile and license inventory.
+The hook's mac-arm64 PDFium archive and native binary were verified; provenance is in
+`native-pdfium-macos-arm64.json`, full notices in `assets/notices/`. The Apple
+XCFramework used by native platform builds still requires a separate audit.
+No native binary is distributed in this repository. Do not publish installers until
+platform-native license and security qualification is complete.
 
 ## Complete the audit
 

@@ -29,6 +29,7 @@ flutter:
   assets:
     - assets/sample.pdf
     - assets/notices/
+    - assets/notices/native-macos-arm64/
   fonts:
     - family: IBMPlexSans
       fonts:

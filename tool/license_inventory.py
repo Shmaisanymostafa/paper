@@ -25,11 +25,18 @@ def main() -> None:
         directory = Path(urllib.parse.unquote(urllib.parse.urlparse(uri).path))
         candidates = [directory / n for n in ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'COPYING']]
         file = next((f for f in candidates if f.is_file()), None)
+        if file is None and directory.parent.name == 'packages':
+            # Flutter SDK packages inherit the SDK root's BSD license.
+            sdk = directory.parent.parent
+            version = sdk / 'bin/cache/flutter.version.json'
+            inherited = sdk / 'LICENSE'
+            if (sdk / 'bin/flutter').is_file() and version.is_file() and inherited.is_file():
+                file = inherited
         if file is None:
             missing.append(package['name'])
             continue
         data = file.read_bytes()
-        entries.append({'package': package['name'], 'licenseFile': file.name,
+        entries.append({'package': package['name'], 'licenseFile': file.relative_to(directory).as_posix() if file.is_relative_to(directory) else '../../LICENSE',
                         'licenseSha256': hashlib.sha256(data).hexdigest()})
         combined.append('\n' + '=' * 72 + '\n' + package['name'] + '\n' + '=' * 72 + '\n' + data.decode('utf-8'))
     report = {'lockSha256': hashlib.sha256(lock.read_bytes()).hexdigest(),

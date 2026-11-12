@@ -1,0 +1,473 @@
+{
+  "lockSha256": "ff23a71198de5341d7ca0eb1f46772a8ecbd5c4f49c28bb1068ad3c02b1a6529",
+  "packages": [
+    {
+      "package": "archive",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "32f97d332eae7453ec4079858e6f1d74be85beeb6d3881068b47d02a379cccea"
+    },
+    {
+      "package": "args",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "dfb09c74e29386cd3e2719f32d4995d59526179753931d31840757c77fbf2791"
+    },
+    {
+      "package": "async",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "package": "boolean_selector",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a"
+    },
+    {
+      "package": "characters",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "0371d1da6a57fb791db29d29b95333429205f51f3cb2eb3a0c12d91838a38744"
+    },
+    {
+      "package": "clock",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "package": "code_assets",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "21ae23b0b9ff67a2dc75ab085d1e8db8ac548c5faf370af17f28dd2ef3b52b7b"
+    },
+    {
+      "package": "collection",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "package": "cross_file",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "crypto",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ad6a71997da90924b2cfb1fb47ec46537f70faf469efe016168794ae45ed6888"
+    },
+    {
+      "package": "cupertino_ui",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "fake_async",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "package": "ffi",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "0371d1da6a57fb791db29d29b95333429205f51f3cb2eb3a0c12d91838a38744"
+    },
+    {
+      "package": "file",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f6df86b1412172537273e8e80ee2fb8a66aa7307ce0b39ea5ddab47ca41b8c49"
+    },
+    {
+      "package": "file_selector",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "file_selector_android",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "8e139d4c7faa5e7a76752e743a745113f46e658071733bfae4914a04da12ae0e"
+    },
+    {
+      "package": "file_selector_ios",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "file_selector_linux",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "file_selector_macos",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "file_selector_platform_interface",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "file_selector_web",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "file_selector_windows",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "flutter",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "flutter_driver",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "flutter_lints",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "flutter_localizations",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "flutter_test",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "flutter_web_plugins",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "fuchsia_remote_debug_protocol",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "glob",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "hooks",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "21ae23b0b9ff67a2dc75ab085d1e8db8ac548c5faf370af17f28dd2ef3b52b7b"
+    },
+    {
+      "package": "http",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "http_parser",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "image",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f3c17da84e0780e1c334325c73098257c32221d62498ed55ef3c1361904925aa"
+    },
+    {
+      "package": "integration_test",
+      "licenseFile": "../../LICENSE",
+      "licenseSha256": "a598db94b6290ffbe10b5ecf911057b6a943351c727fdda9e5f2891d68700a20"
+    },
+    {
+      "package": "intl",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "7e124af6a556f045cb3a20cafbdaa31602ac2c82cbcb3c3b15faaaf514b06028"
+    },
+    {
+      "package": "jni",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "08a004aa8956c3cf3b24f7f69c966247233953e18e6afaa61191ea47b7eb70f6"
+    },
+    {
+      "package": "jni_flutter",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "b1fcb475d67817411f335ac92872507011e574c4cb29cfdaaf7707b75641932c"
+    },
+    {
+      "package": "jni_util",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "b1fcb475d67817411f335ac92872507011e574c4cb29cfdaaf7707b75641932c"
+    },
+    {
+      "package": "leak_tracker",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "08a004aa8956c3cf3b24f7f69c966247233953e18e6afaa61191ea47b7eb70f6"
+    },
+    {
+      "package": "leak_tracker_flutter_testing",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "08a004aa8956c3cf3b24f7f69c966247233953e18e6afaa61191ea47b7eb70f6"
+    },
+    {
+      "package": "leak_tracker_testing",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "08a004aa8956c3cf3b24f7f69c966247233953e18e6afaa61191ea47b7eb70f6"
+    },
+    {
+      "package": "lints",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "421fe78c3b5df297f8b4ab2c74f2450a274ee6d245a113091f6b9f90570af193"
+    },
+    {
+      "package": "logging",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "dfb09c74e29386cd3e2719f32d4995d59526179753931d31840757c77fbf2791"
+    },
+    {
+      "package": "matcher",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "material_color_utilities",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "d103f246ef4c18dab8af0c1dcf6a8af884e5cff554da7261a48ac43c17d98f2e"
+    },
+    {
+      "package": "material_ui",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "meta",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a"
+    },
+    {
+      "package": "native_toolchain_c",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "aa81abb1ac43e40d2f5a606385edd37e974a5858d4109f7f439dd43d964487a7"
+    },
+    {
+      "package": "objective_c",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "1cda25a8de6880c5338de0b4a06ee89e8537c213eb1379c16a4c035bfd198b5c"
+    },
+    {
+      "package": "package_config",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "0371d1da6a57fb791db29d29b95333429205f51f3cb2eb3a0c12d91838a38744"
+    },
+    {
+      "package": "path",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "path_provider",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "path_provider_android",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "path_provider_foundation",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "path_provider_linux",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "path_provider_platform_interface",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "path_provider_windows",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "pdfium_dart",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "567f9f1ce8a40a384765361ac0d204efdc355be53caed412cf8a0e6158d470bf"
+    },
+    {
+      "package": "pdfium_flutter",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "567f9f1ce8a40a384765361ac0d204efdc355be53caed412cf8a0e6158d470bf"
+    },
+    {
+      "package": "pdfrx",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "050ccfd8256df03e5ccaec222c0f87a4e5e2069c69515f027b534a63fb00fe23"
+    },
+    {
+      "package": "pdfrx_engine",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "050ccfd8256df03e5ccaec222c0f87a4e5e2069c69515f027b534a63fb00fe23"
+    },
+    {
+      "package": "platform",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "143839f62c9b7f88143ea9f688361c27050888acde7696b34e04414bd254fafc"
+    },
+    {
+      "package": "plugin_platform_interface",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "posix",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "aaf6271abd048deb3125828613f1797b7556472de6c7acd7103bd43e9cb6a84b"
+    },
+    {
+      "package": "process",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "5f018bbc25a55406d7a4e1d3229135439e315210b0050ca56dbb367a4934e85d"
+    },
+    {
+      "package": "pub_semver",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "record_use",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "1cda25a8de6880c5338de0b4a06ee89e8537c213eb1379c16a4c035bfd198b5c"
+    },
+    {
+      "package": "rxdart",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "package": "sky_engine",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c0040023a5789bf56d6bf41fd44f08b21758523d41f128fb7dd6beb398d1191"
+    },
+    {
+      "package": "source_span",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "stack_trace",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff0b91d4f3c32b25cb6ec84985e8da89b0ba2a2b2f7eef353cda5e5423a20390"
+    },
+    {
+      "package": "stream_channel",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "package": "string_scanner",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "sync_http",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "b9b748d4dd6f725387bf69e96df4e4ebff167ae83547954242a731504d037644"
+    },
+    {
+      "package": "synchronized",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "6d07c6bb60afb906049d507e19fcc4c6b59e35c0dd0f8a7302e87b3fb0576900"
+    },
+    {
+      "package": "term_glyph",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ea97a7558a7bd7cee4e2355f7529e3cbebb0dcbb546ddb9a90f10c9eb6b08da5"
+    },
+    {
+      "package": "test_api",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff1b9f0df9036c04be424b1e3ce12789bea880ad5ffc3a48e069ae2d40a087a4"
+    },
+    {
+      "package": "typed_data",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "package": "url_launcher",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_android",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_ios",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_linux",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_macos",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_platform_interface",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "url_launcher_web",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "url_launcher_windows",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "vector_math",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "vm_service",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ad6a71997da90924b2cfb1fb47ec46537f70faf469efe016168794ae45ed6888"
+    },
+    {
+      "package": "web",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "aa913ff50d7542eb8cc35b9f48a80928ac6819ba9057f85d424655e3e8dc271c"
+    },
+    {
+      "package": "webdriver",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "74cb46b123c9fa918ea8e0a0f5be736a1cd661edf145ccc723dc7ce30324ebab"
+    },
+    {
+      "package": "xdg_directories",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "yaml",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "d47b93335401b052d79a2f5a3710e4cf7b5aed782faedf84d40fbdd6eb934ec7"
+    }
+  ],
+  "missing": [],
+  "status": "needs-human-license-review",
+  "nativePdfiumNotices": "REQUIRED SEPARATELY: inspect exact downloaded native archives"
+}

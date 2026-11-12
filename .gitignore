@@ -19,3 +19,5 @@ android/local.properties
 ios/Pods/
 macos/Pods/
 **/ephemeral/
+
+verification/native/*.tgz

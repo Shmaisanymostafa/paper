@@ -14,17 +14,36 @@ void main() {
   });
   for (final language in ['en', 'ar']) {
     for (final width in [360.0, 1280.0]) {
-      testWidgets('$language library at $width does not overflow', (tester) async {
-        final dir = await Directory.systemTemp.createTemp('paper-widget-');
-        addTearDown(() async => dir.delete(recursive: true));
-        final repo = LibraryRepository(dir);
-        await repo.setSettings(PaperSettings(language: language));
+      testWidgets('$language library at $width does not overflow', (
+        tester,
+      ) async {
+        final dir = await tester.runAsync(
+          () => Directory.systemTemp.createTemp('paper-widget-'),
+        );
+        final repo = LibraryRepository(dir!);
+        await tester.runAsync(
+          () => repo.setSettings(PaperSettings(language: language)),
+        );
+        addTearDown(() async {
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.runAsync(() => dir.delete(recursive: true));
+        });
         tester.view.physicalSize = Size(width, 900);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
         await tester.pumpWidget(PaperApp(repository: repo));
-        await tester.runAsync(() async => Future<void>.delayed(const Duration(milliseconds: 100)));
+        for (
+          var attempt = 0;
+          attempt < 50 &&
+              find.text(PaperStrings(language)['open']).evaluate().isEmpty;
+          attempt++
+        ) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump();
+        }
         await tester.pumpAndSettle();
         expect(find.text(PaperStrings(language)['open']), findsOneWidget);
         expect(tester.takeException(), isNull);
