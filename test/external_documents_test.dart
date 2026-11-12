@@ -22,6 +22,26 @@ void main() {
     adapter.dispose();
     messenger.setMockMethodCallHandler(ExternalDocuments.channel, null);
   });
+  test('warm open event reaches active listener', () async {
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(
+      ExternalDocuments.channel,
+      (_) async => <String>[],
+    );
+    final adapter = ExternalDocuments();
+    final paths = <String>[];
+    await adapter.start(paths.add);
+    const codec = StandardMethodCodec();
+    await messenger.handlePlatformMessage(
+      'technology.cave.paper/documents',
+      codec.encodeMethodCall(const MethodCall('open', '/tmp/warm.pdf')),
+      (_) {},
+    );
+    expect(paths, ['/tmp/warm.pdf']);
+    adapter.dispose();
+    messenger.setMockMethodCallHandler(ExternalDocuments.channel, null);
+  });
   test('platform without adapter leaves picker available', () async {
     final adapter = ExternalDocuments();
     await adapter.start((_) => fail('No incoming files expected'));

@@ -316,7 +316,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
     applicationName: s.appName,
     applicationVersion: '0.1.0 beta',
     applicationLegalese: '© 2026 Cave · MIT',
-    applicationIcon: const Icon(Icons.auto_stories_outlined, size: 40),
+    applicationIcon: Image.asset(
+      'assets/branding/app-logo.png',
+      width: 40,
+      height: 40,
+      fit: BoxFit.contain,
+    ),
     children: [
       const SizedBox(height: 16),
       Text(s['noAccount']),
@@ -335,10 +340,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
           padding: const EdgeInsets.all(24),
           child: Row(
             children: [
-              Icon(
-                Icons.auto_stories_outlined,
-                color: Theme.of(context).colorScheme.primary,
-                size: 32,
+              Image.asset(
+                'assets/branding/app-logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 12),
               Flexible(
@@ -515,9 +521,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                   horizontal: 16,
                                   vertical: 12,
                                 ),
-                                leading: const Icon(
-                                  Icons.picture_as_pdf_outlined,
-                                  size: 36,
+                                leading: Image.asset(
+                                  'assets/branding/pdf-icon.png',
+                                  width: 36,
+                                  height: 44,
+                                  fit: BoxFit.contain,
                                 ),
                                 title: Text(
                                   doc.title,
