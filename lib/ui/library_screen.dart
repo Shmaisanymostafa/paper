@@ -1,4 +1,9 @@
 import 'dart:async';
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+
+import '../data/external_documents.dart';
 
 import 'package:file_selector/file_selector.dart' as fs;
 import 'package:flutter/services.dart';
@@ -26,6 +31,9 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
+  final _external = ExternalDocuments();
+  final List<String> _pendingExternal = [];
+  bool _openingExternal = false;
   PaperLibrary? _library;
   bool _busy = false;
   String? _error;
@@ -35,6 +43,56 @@ class _LibraryScreenState extends State<LibraryScreen> {
   void initState() {
     super.initState();
     unawaited(_load());
+    unawaited(
+      _external.start((path) {
+        _pendingExternal.add(path);
+        unawaited(_drainExternal());
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    _external.dispose();
+    for (final path in _pendingExternal) {
+      unawaited(_external.release(path));
+    }
+    super.dispose();
+  }
+
+  Future<void> _drainExternal() async {
+    if (_openingExternal) return;
+    _openingExternal = true;
+    try {
+      while (mounted && _pendingExternal.isNotEmpty) {
+        final path = _pendingExternal.removeAt(0);
+        var released = false;
+        try {
+          final file = File(path);
+          if (!p.isAbsolute(path) ||
+              !path.toLowerCase().endsWith('.pdf') ||
+              await file.length() > 200 * 1024 * 1024) {
+            throw const FormatException('Unsupported incoming PDF');
+          }
+          final doc = await widget.repository.importPdf(
+            name: p.basename(path),
+            bytes: file.openRead(),
+          );
+          await _external.release(path);
+          released = true;
+          await _load();
+          if (mounted) await _read(doc);
+        } catch (_) {
+          if (!released) await _external.release(path);
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(s['importError'])));
+          }
+        }
+      }
+    } finally {
+      _openingExternal = false;
+    }
   }
 
   Future<void> _load() async {

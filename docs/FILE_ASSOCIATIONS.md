@@ -1,0 +1,21 @@
+# Default PDF viewer / open-with status
+
+macOS source advertises `com.adobe.pdf` as Viewer with Alternate rank. The
+native adapter queues cold launches and delivers warm open events. Flutter
+imports a validated managed copy before opening it; original files remain unchanged.
+Security-scoped access is released after import. Multiple files open sequentially.
+The user chooses Finder > Get Info > Open with > Change All, if desired.
+The app never changes system defaults automatically.
+
+Current verification: Dart adapter tests and analyzer only. Native cold/warm
+launch, multiple-file, denied-file, sandbox and installed-app association tests
+remain required. This is not a verified macOS handler release.
+
+Android, iOS, Windows and Linux adapters/packaging remain pending. On iOS,
+Open In / document import does not imply a universal default PDF reader setting.
+On Windows, the selected default application's ProgID controls the PDF file
+icon; Cave Paper cannot promise its icon while another app is the default.
+
+Approved app/logo and PDF file-icon originals are preserved separately for
+packaging; the platform runner art has not yet been replaced. Do not publish
+unapproved substitutions or claim these features shipped.
