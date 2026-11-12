@@ -1,0 +1,26 @@
+{
+  "status": "source-preparation-only",
+  "python_tool_tests": 6,
+  "dart_files_structurally_checked": 10,
+  "localized_keys": 82,
+  "flutter_tests": "NOT RUN: SDK/package downloads blocked",
+  "native_builds": "NOT RUN",
+  "fonts": [
+    {
+      "file": "assets/fonts/IBMPlexSans-Regular.ttf",
+      "sha256": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5"
+    },
+    {
+      "file": "assets/fonts/IBMPlexSans-SemiBold.ttf",
+      "sha256": "a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1"
+    },
+    {
+      "file": "assets/fonts/IBMPlexSansArabic-Regular.ttf",
+      "sha256": "8e0f1046c736bf939d4939ee3ae0116acf61cbcd6592deae7656761627080981"
+    },
+    {
+      "file": "assets/fonts/IBMPlexSansArabic-Bold.ttf",
+      "sha256": "b74f809dead12442ed56e02a12c3bcc02076c9ad4e32f17d0a9ca6fc1aafc89e"
+    }
+  ]
+}
