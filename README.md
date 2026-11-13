@@ -8,7 +8,7 @@ reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 28 automated tests. Native runners and locked dependencies
+> static analysis and 31 automated tests. Native runners and locked dependencies
 > are included. Native installation, device acceptance and public repository
 > publication remain blocked or pending. See [validation status](docs/VALIDATION.md).
 
@@ -33,7 +33,11 @@ native share/export integration is not implemented.
 
 Existing forms and annotations may render through PDFium. **Form filling/saving,
 editing existing PDF text/images, OCR, digital signatures, redaction, printing,
-native open-with/file associations and background syncing are not implemented.**
+and background syncing are not implemented. Native open-with adapters and
+file-association metadata are implemented in source for all five targets, but
+remain unqualified until native platform acceptance. See
+[file associations](docs/FILE_ASSOCIATIONS.md). The app never changes your default
+PDF viewer automatically.**
 
 ## Start development
 

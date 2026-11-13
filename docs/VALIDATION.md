@@ -39,3 +39,16 @@ A coordinated macOS debug build was attempted twice after disk cleanup. Both nat
 - No default PDF handler was changed. Native Finder rendering, cold/warm opening,
   full macOS build and public repository publication remain unverified.
 - Avoided a redundant native build while disk space is constrained.
+
+## Finish pass (2026-11-13)
+
+- Re-ran the aggregate command: eight Python tooling checks, source hygiene,
+  Dart formatting, fatal-info analyzer and 31 Flutter tests passed; four optional
+  capture tests were skipped by the default suite.
+- The aggregate now includes tooling/source checks and analyzes with `--no-pub`
+  to avoid implicit dependency resolution during repeat validation. Run
+  `flutter pub get` explicitly after a deliberate dependency change.
+- Corrected README claims about file associations to distinguish implemented
+  platform adapters from still-unverified native runtime behavior.
+- Native building is deferred while Accounts deployment shares a disk with only
+  about 2.9 GiB free; preserve the 2 GiB reserve. This is not release approval.
