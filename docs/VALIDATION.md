@@ -27,3 +27,15 @@ No backend, paid services, customer data or other product files were changed. Th
 Approved artwork integrated and app-icon sizes packaged for all targets, plus Windows PDF ICO. Dart tests31 pass and optional captures4 pass at this stage. macOS/iOS/Android/Linux/Windows incoming-file adapter sources are present; native platform behavior is not yet verified. See platform checklists.
 
 A coordinated macOS debug build was attempted twice after disk cleanup. Both native commands remained silent and were stopped through their owned sessions; no successful build/launch is claimed. No unrelated process was stopped. Free space remained above5GiB. No public repository exists: create-repository connector, authenticated gh and supported Browser js were unavailable.
+
+## macOS document-icon continuation (2026-11-13)
+
+- Added approved PDF artwork as a 16/32/64/128/256px ICNS container and bundled
+  it through the Xcode Resources phase and Viewer document-type declaration.
+- `plutil -lint` passed for Info.plist and project.pbxproj; Apple `sips` recognizes
+  the ICNS and its largest 256px representation.
+- Eight Python tooling tests pass, including ICNS structure and document-resource
+  wiring. This is packaging/source validation, not a native app/runtime pass.
+- No default PDF handler was changed. Native Finder rendering, cold/warm opening,
+  full macOS build and public repository publication remain unverified.
+- Avoided a redundant native build while disk space is constrained.

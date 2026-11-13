@@ -3,6 +3,7 @@
 import importlib.util
 from pathlib import Path
 import plistlib
+import struct
 import tempfile
 import unittest
 
@@ -18,9 +19,39 @@ def load(name):
 
 audit = load('audit_source')
 bootstrap = load('bootstrap')
+icns = load('package_icns')
 
 
 class ToolingTests(unittest.TestCase):
+    def test_icns_container_preserves_png_payload_and_rejects_bad_size(self):
+        root = HERE.parent
+        data = (root / 'macos/Runner/PaperPDF.icns').read_bytes()
+        self.assertEqual(data[:4], b'icns')
+        self.assertEqual(struct.unpack('>I', data[4:8])[0], len(data))
+        offset = 8
+        for size, kind in icns.TYPES.items():
+            self.assertEqual(data[offset:offset+4], kind)
+            length = struct.unpack('>I', data[offset+4:offset+8])[0]
+            png = data[offset+8:offset+length]
+            self.assertEqual(struct.unpack('>II', png[16:24]), (size, size))
+            self.assertEqual(icns.package([(size, png)])[16:], png)
+            with self.assertRaises(ValueError):
+                icns.package([(size + 1, png)])
+            offset += length
+        self.assertEqual(offset, len(data))
+        with self.assertRaises(ValueError):
+            icns.package([])
+
+    def test_macos_document_icon_is_bundled_without_default_override(self):
+        root = HERE.parent
+        plist = plistlib.loads((root / 'macos/Runner/Info.plist').read_bytes())
+        document = plist['CFBundleDocumentTypes'][0]
+        self.assertEqual(document['CFBundleTypeIconFile'], 'PaperPDF.icns')
+        self.assertEqual(document['LSHandlerRank'], 'Alternate')
+        self.assertEqual(document['CFBundleTypeRole'], 'Viewer')
+        project = (root / 'macos/Runner.xcodeproj/project.pbxproj').read_text()
+        self.assertEqual(project.count('PaperPDF.icns in Resources'), 2)
+
     def test_interpolation_and_raw_regex_do_not_confuse_structural_check(self):
         self.assertEqual(audit.delimiter_errors("Text('${s['page']} ${doc.page}'); final r=RegExp(r'[a-z]');"), [])
 

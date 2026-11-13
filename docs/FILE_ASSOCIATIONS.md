@@ -17,7 +17,7 @@ On Windows, the selected default application's ProgID controls the PDF file
 icon; Cave Paper cannot promise its icon while another app is the default.
 
 Approved app/logo and PDF file-icon originals are preserved separately for
-packaging; the platform runner art has not yet been replaced. Do not publish
+packaging; platform app icons and Windows/macOS document icon containers are packaged. Do not publish
 unapproved substitutions or claim these features shipped.
 
 ## Mobile continuation
@@ -32,4 +32,4 @@ acceptance evidence yet. Dart protocol tests cover queued cold paths and warm
 open delivery; they do not establish native platform correctness.
 
 Approved art is integrated into the Flutter interface; platform icon resources
-remain pending. Windows/Linux source handlers now use single-instance forwarding; native compilation and runtime checks remain pending.
+are packaged, with native installation/icon-cache checks still pending. Windows/Linux source handlers now use single-instance forwarding; native compilation and runtime checks remain pending.
