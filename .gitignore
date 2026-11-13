@@ -21,3 +21,5 @@ macos/Pods/
 **/ephemeral/
 
 verification/native/*.tgz
+
+verification/native/*.zip

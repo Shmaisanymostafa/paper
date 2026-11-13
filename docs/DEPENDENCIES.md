@@ -69,3 +69,16 @@ platform-native license and security qualification is complete.
 - https://pub.dev/packages/path_provider/versions/2.1.5/license
 - https://pub.dev/packages/crypto/versions/3.0.7/license
 - https://github.com/IBM/plex
+
+## Apple archive inspection (2026-11-13)
+
+The exact 24,313,448-byte XCFramework archive was downloaded without execution.
+Its SHA256 matches both the installed SPM/podspec pin and GitHub release metadata.
+The archive includes macOS arm64/x86_64, iOS arm64, simulator and Catalyst slices.
+None of its 136 ZIP entries is a LICENSE, NOTICE or COPYING file. Therefore the
+wrapper MIT notice alone does not establish native redistribution compliance.
+The existing Chromium 8125 notices must be reconciled with this Apple build's
+upstream provenance and bundled before installer publication. This is an
+identified documentation gap, not a finding of incompatible licensing.
+See `native-pdfium-apple.json`. The downloaded ZIP is ignored by Git; no binary
+was executed, installed or committed, and no native build was started.

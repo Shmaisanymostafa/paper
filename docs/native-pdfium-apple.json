@@ -1,0 +1,54 @@
+{
+  "checkedOn": "2026-11-13",
+  "archiveBytes": 24313448,
+  "archiveSha256": "4e83df9e096b98963070a91e1c8fe7252d5c3a80d505e8acfda3f18ac904230d",
+  "source": "https://github.com/espresso3389/pdfium-xcframework/releases/download/v158.0.8125.0-20261029-150241/PDFium-chromium-8125-20261029-150241.xcframework.zip",
+  "manifestChecksumMatches": true,
+  "releaseMetadataDigestMatches": true,
+  "entryCount": 136,
+  "noticeFiles": [],
+  "platforms": [
+    {
+      "BinaryPath": "PDFium.framework/PDFium",
+      "LibraryIdentifier": "ios-arm64",
+      "LibraryPath": "PDFium.framework",
+      "SupportedArchitectures": [
+        "arm64"
+      ],
+      "SupportedPlatform": "ios"
+    },
+    {
+      "BinaryPath": "PDFium.framework/Versions/A/PDFium",
+      "LibraryIdentifier": "macos-arm64_x86_64",
+      "LibraryPath": "PDFium.framework",
+      "SupportedArchitectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "SupportedPlatform": "macos"
+    },
+    {
+      "BinaryPath": "PDFium.framework/Versions/A/PDFium",
+      "LibraryIdentifier": "ios-arm64_x86_64-maccatalyst",
+      "LibraryPath": "PDFium.framework",
+      "SupportedArchitectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "SupportedPlatform": "ios",
+      "SupportedPlatformVariant": "maccatalyst"
+    },
+    {
+      "BinaryPath": "PDFium.framework/PDFium",
+      "LibraryIdentifier": "ios-arm64_x86_64-simulator",
+      "LibraryPath": "PDFium.framework",
+      "SupportedArchitectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "SupportedPlatform": "ios",
+      "SupportedPlatformVariant": "simulator"
+    }
+  ],
+  "qualification": "Archive identity and platform metadata verified. No LICENSE/NOTICE/COPYING files in archive. This is not license or security clearance; reconcile upstream notices before redistribution."
+}
