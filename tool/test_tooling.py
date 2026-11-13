@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Tests the actual development tooling; these are not Flutter tests."""
 import importlib.util
+import json
+import hashlib
 from pathlib import Path
 import plistlib
 import struct
@@ -23,6 +25,18 @@ icns = load('package_icns')
 
 
 class ToolingTests(unittest.TestCase):
+    def test_apple_upstream_notice_inventory_matches_bundled_notices(self):
+        root = HERE.parent
+        report = json.loads((root / 'docs/apple-upstream-notices.json').read_text())
+        self.assertEqual(len(report), 7)
+        expected = report[0]['noticeHashes']
+        self.assertEqual(len(expected), 19)
+        for artifact in report:
+            self.assertEqual(artifact['noticeHashes'], expected)
+        for name, digest in expected.items():
+            local = root / 'assets/notices/native-macos-arm64' / name.replace('/', '--')
+            self.assertEqual(hashlib.sha256(local.read_bytes()).hexdigest(), digest)
+
     def test_icns_container_preserves_png_payload_and_rejects_bad_size(self):
         root = HERE.parent
         data = (root / 'macos/Runner/PaperPDF.icns').read_bytes()

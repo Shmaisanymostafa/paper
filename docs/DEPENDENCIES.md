@@ -82,3 +82,19 @@ upstream provenance and bundled before installer publication. This is an
 identified documentation gap, not a finding of incompatible licensing.
 See `native-pdfium-apple.json`. The downloaded ZIP is ignored by Git; no binary
 was executed, installed or committed, and no native build was started.
+
+### Apple notice reconciliation completed
+
+The release-tagged `espresso3389/pdfium-xcframework` build.sh repackages seven
+non-V8 Chromium 8125 upstream archives (two macOS, five iOS/Catalyst/simulator).
+All seven were verified against GitHub release asset SHA256 digests. Their 19
+license files are byte-identical across architectures and match all 19 original
+notices already bundled under `assets/notices/native-macos-arm64/`. The combined
+notice is already registered in the offline license UI. See
+`apple-upstream-notices.json` for each archive URL, size, digest and notice hash.
+A regression test verifies this inventory against the bundled texts.
+
+This closes the missing upstream-notice collection/reconciliation gap for Apple
+source packaging. Final installed-app notice rendering, binary build provenance
+and vulnerability review remain separate release gates; no native runtime test
+or blanket legal/security clearance is implied. No downloaded code was run.
