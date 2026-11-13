@@ -52,3 +52,16 @@ A coordinated macOS debug build was attempted twice after disk cleanup. Both nat
   platform adapters from still-unverified native runtime behavior.
 - Native building is deferred while Accounts deployment shares a disk with only
   about 2.9 GiB free; preserve the 2 GiB reserve. This is not release approval.
+
+## Public source publication (2026-11-13)
+
+The owner-created public repository https://github.com/Shmaisanymostafa/paper
+was verified empty before publication. Commit 0ec5759 was pushed to main without
+force and matched through a fresh remote ref read. A 266-blob history scan found
+no matches for the checked credential patterns; tracked files contain only the
+synthetic sample PDF, not personal documents or downloaded native archives.
+Final source checks passed: nine tooling tests, source audit, formatting, analyzer
+and 31 Flutter tests (four optional capture tests skipped).
+
+This supersedes earlier public-repository blockers. Publication is development
+source, not a packaged beta, native acceptance pass or binary release.

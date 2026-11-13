@@ -9,8 +9,8 @@ backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
 > static analysis and 31 automated tests. Native runners and locked dependencies
-> are included. Native installation, device acceptance and public repository
-> publication remain blocked or pending. See [validation status](docs/VALIDATION.md).
+> are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
+> Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
 
 ## Implemented in source
 
