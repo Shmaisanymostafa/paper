@@ -1,5 +1,5 @@
 {
-  "lockSha256": "39c1e7503c69c782df06c45999d7b8316eaa85781a8999854c52681342d428ec",
+  "lockSha256": "402358254d6f1acde45c373c4cc4173dcf354be7d292896059d411e8f117995b",
   "packages": [
     {
       "package": "archive",
@@ -15,6 +15,16 @@
       "package": "async",
       "licenseFile": "LICENSE",
       "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "package": "barcode",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "cc4d4de0920b0d3912203b5d9aa76728ac4a11087f55da9ea00576db7d1e34e2"
+    },
+    {
+      "package": "bidi",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "55a7db11d87de5d70e7de04e41abec1d25f4f7dc12d67261ed747403a2280d3e"
     },
     {
       "package": "boolean_selector",
@@ -277,6 +287,11 @@
       "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
     },
     {
+      "package": "path_parsing",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "f4fc0fe1e273823b06540b3b948640ff81f3a5c5dc7088972eef662fe450ad77"
+    },
+    {
       "package": "path_provider",
       "licenseFile": "LICENSE",
       "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
@@ -307,6 +322,16 @@
       "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
     },
     {
+      "package": "pdf",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "cc4d4de0920b0d3912203b5d9aa76728ac4a11087f55da9ea00576db7d1e34e2"
+    },
+    {
+      "package": "pdf_widget_wrapper",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "cc4d4de0920b0d3912203b5d9aa76728ac4a11087f55da9ea00576db7d1e34e2"
+    },
+    {
       "package": "pdfium_dart",
       "licenseFile": "LICENSE",
       "licenseSha256": "567f9f1ce8a40a384765361ac0d204efdc355be53caed412cf8a0e6158d470bf"
@@ -327,6 +352,11 @@
       "licenseSha256": "050ccfd8256df03e5ccaec222c0f87a4e5e2069c69515f027b534a63fb00fe23"
     },
     {
+      "package": "petitparser",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "0be767174b97278f17da4923a74169e8645631f03ea3d8482ec3523c9b1a0dd3"
+    },
+    {
       "package": "platform",
       "licenseFile": "LICENSE",
       "licenseSha256": "143839f62c9b7f88143ea9f688361c27050888acde7696b34e04414bd254fafc"
@@ -342,6 +372,11 @@
       "licenseSha256": "aaf6271abd048deb3125828613f1797b7556472de6c7acd7103bd43e9cb6a84b"
     },
     {
+      "package": "printing",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "cc4d4de0920b0d3912203b5d9aa76728ac4a11087f55da9ea00576db7d1e34e2"
+    },
+    {
       "package": "process",
       "licenseFile": "LICENSE",
       "licenseSha256": "5f018bbc25a55406d7a4e1d3229135439e315210b0050ca56dbb367a4934e85d"
@@ -350,6 +385,11 @@
       "package": "pub_semver",
       "licenseFile": "LICENSE",
       "licenseSha256": "3c32b53167c7dae9190c38dab5dd9fe1789c53623ebc7d1babcb29914c5b3f16"
+    },
+    {
+      "package": "qr",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "1d6c0bc8208cd835577eeb9195dc646f092728b62803abd60c404d984524abf7"
     },
     {
       "package": "record_use",
@@ -495,6 +535,11 @@
       "package": "xdg_directories",
       "licenseFile": "LICENSE",
       "licenseSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "package": "xml",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "0be767174b97278f17da4923a74169e8645631f03ea3d8482ec3523c9b1a0dd3"
     },
     {
       "package": "yaml",

@@ -8,7 +8,7 @@ reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 40 automated tests. macOS PDFium sample integration passes. Native runners and locked dependencies
+> static analysis and 48 automated tests. macOS PDFium sample integration passes. Native runners and locked dependencies
 > are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
 > Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
 
@@ -19,6 +19,7 @@ backend, advertising, analytics, remote font loading or app update service.
 - Scroll, pinch/zoom, page navigation and PDF contents/outline.
 - Selectable-text search with progress and highlighted results; no OCR claim.
 - Saved page bookmarks, page notes and text highlights.
+- Explicit system print dialog on Apple/Android (whole document, uniform page sizes, unprotected PDFs up to 64 MiB; notes excluded).
 - Annotation JSON import/export, bound to the exact PDF fingerprint.
 - Password dialog for encrypted PDFs, without saving passwords.
 - English/Arabic with RTL, locally bundled IBM Plex, light/dark/system themes.
@@ -33,7 +34,7 @@ and Windows offer native Share PDF with optional annotation JSON; actual native
 share-sheet acceptance on each target remains pending.
 
 Existing forms and annotations may render through PDFium. **Form filling/saving,
-editing existing PDF text/images, OCR, digital signatures, redaction, printing,
+editing existing PDF text/images, OCR, digital signatures, redaction,
 and background syncing are not implemented. Native open-with adapters and
 file-association metadata are implemented in source for all five targets, but
 remain unqualified until native platform acceptance. See
@@ -129,3 +130,19 @@ contain highlighted text from protected PDFs. PDF password protection is retaine
 notes are not embedded. Users choose the recipient/destination in the system UI.
 Recipients and the system cache may retain copies. A selected share action is not
 proof of delivery. Linux keeps the existing annotation Save As flow.
+
+## Printing limits and desktop dependency gate
+
+Printing never chooses a destination or silently submits a job; the OS may
+preselect its default printer, and the user must confirm. Cave Paper supplies the
+unchanged PDF bytes. This initial implementation prints the entire document at its
+original uniform page size. Protected/restricted PDFs, mixed page sizes and files
+over 64 MiB are refused. Annotation JSON is not printed. Actual printers, driver
+behavior and mobile devices remain unqualified.
+
+The printing plugin's Windows/Linux builds introduce an additional PDFium parser
+(default version 5200, download without archive hash). Those builds MUST NOT be
+released until its version, integrity and notices are pinned/reviewed or that
+backend is replaced. Printing UI is hidden on Windows/Linux for now; this does
+not remove the plugin from their build graphs. Apple uses OS PDF rendering for
+printing. This source change does not qualify any installer for distribution.

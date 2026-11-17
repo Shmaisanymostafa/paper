@@ -12,6 +12,7 @@ import 'package:pdfrx/pdfrx.dart';
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../services/document_share.dart';
+import '../services/document_print.dart';
 import 'strings.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -32,7 +33,10 @@ class _ReaderScreenState extends State<ReaderScreen>
     with WidgetsBindingObserver {
   final _controller = PdfViewerController();
   final _documentShare = DocumentShare();
-  bool _sharing = false;
+  bool _sharing = false, _printing = false;
+  bool _encrypted = true, _allowsPrinting = false, _uniformPages = false;
+  double _printWidth = 0, _printHeight = 0;
+  final _documentPrint = DocumentPrint();
   final _searchField = TextEditingController();
   final _panelChanges = ValueNotifier<int>(0);
   late PaperDocument _document;
@@ -130,6 +134,17 @@ class _ReaderScreenState extends State<ReaderScreen>
     _searcher = PdfTextSearchSession(controller)..addListener(_refreshSearch);
     if (!mounted) return;
     setState(() {
+      _printWidth = document.pages.isEmpty ? 0 : document.pages.first.width;
+      _printHeight = document.pages.isEmpty ? 0 : document.pages.first.height;
+      _uniformPages =
+          document.pages.isNotEmpty &&
+          document.pages.every(
+            (page) =>
+                (page.width - _printWidth).abs() < 0.1 &&
+                (page.height - _printHeight).abs() < 0.1,
+          );
+      _encrypted = document.isEncrypted;
+      _allowsPrinting = document.permissions?.allowsPrinting ?? true;
       _pageCount = document.pages.length;
       _page = _document.lastPage.clamp(1, max(1, _pageCount)).toInt();
     });
@@ -418,6 +433,51 @@ class _ReaderScreenState extends State<ReaderScreen>
     field.dispose();
     if (number != null && _controller.isReady) {
       await _controller.goToPage(pageNumber: number);
+    }
+  }
+
+  Future<void> _printDocument() async {
+    if (_printing || !_controller.isReady) return;
+    if (_encrypted || !_allowsPrinting) {
+      _message('printProtected');
+      return;
+    }
+    setState(() => _printing = true);
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(s['printDocument']),
+          content: SingleChildScrollView(child: Text(s['printDetail'])),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(s['cancel']),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(s['openPrintDialog']),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted || _closing) return;
+      await _documentPrint.print(
+        repository: widget.repository,
+        document: _document,
+        encrypted: _encrypted,
+        pageWidth: _printWidth,
+        pageHeight: _printHeight,
+        uniformPages: _uniformPages,
+        allowsPrinting: _allowsPrinting,
+        isActive: () => mounted && !_closing,
+      );
+    } on DocumentPrintException catch (error) {
+      _message(error.messageKey);
+    } catch (_) {
+      _message('printError');
+    } finally {
+      if (mounted) setState(() => _printing = false);
     }
   }
 
@@ -830,6 +890,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                     _openPanel(1);
                   case 'notes':
                     _openPanel(3);
+                  case 'print':
+                    unawaited(_printDocument());
                   case 'share':
                     unawaited(_shareDocument());
                   case 'export':
@@ -860,6 +922,12 @@ class _ReaderScreenState extends State<ReaderScreen>
                 PopupMenuItem(value: 'contents', child: Text(s['outline'])),
                 PopupMenuItem(value: 'notes', child: Text(s['notes'])),
                 const PopupMenuDivider(),
+                if (DocumentPrint.supported)
+                  PopupMenuItem(
+                    value: 'print',
+                    enabled: !_printing,
+                    child: Text(s['printDocument']),
+                  ),
                 if (DocumentShare.supported)
                   PopupMenuItem(
                     value: 'share',

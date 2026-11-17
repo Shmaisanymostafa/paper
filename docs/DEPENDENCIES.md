@@ -13,6 +13,7 @@ inventory, not a claim that every resolved binary has been qualified.
 | pdfrx_engine | MIT | Transitive engine selected by pdfrx; not manually overridden |
 | PDFium native builds | BSD-style + third-party licenses | Exact artifacts/notices must be collected and inspected |
 | file_selector 1.0.4 | BSD-3-Clause | Open on all five targets; Save As unavailable on Android/iOS |
+| printing 5.15.1 / pdf 3.13.1 | Apache-2.0 | Explicit system print dialog; package license texts collected. Windows/Linux extra PDFium 5200 unverified download blocks release; Apple uses system PDF rendering. |
 | share_plus 13.3.0 | BSD-3-Clause | Native user-initiated file sharing; source/license inspected, exact transitive notices collected; device acceptance pending |
 | path_provider 2.1.5 | BSD-3-Clause | Native app support directory, no web target |
 | crypto 3.0.7 / path 1.9.1 | BSD-3-Clause | Hashing and safe managed paths |

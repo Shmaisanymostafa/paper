@@ -114,3 +114,27 @@ get-task-allow. It is NOT a distributable/notarized beta. No defaults changed,
 no files sent, and no release published. Exact Apple PDFium XCFramework notice/
 security qualification, distribution signing/notarization, other device/OS
 acceptance and the remaining RELEASE.md gates still block public beta packaging.
+
+### Explicit offline printing (2026-11-17)
+
+Implemented a user-confirmed system Print PDF dialog using printing 5.15.1/pdf 3.13.1
+(Apache-2.0; resolved license texts collected). Supplies byte-identical original PDF
+bytes, never sidecar notes or stored passwords. Refuses protected/print-restricted,
+mixed-page-size or over 64 MiB documents. Validates fingerprint before native handoff,
+coalesces repeated calls, cancels if reader closed and resets after native errors.
+
+Independent source review identified default-paper sizing, misleading default-
+printer disclosure and Windows/Linux native parser issues. Source dimensions now
+set the print format; mixed sizes are refused; whole-document-only behavior and
+OS confirmation are explicit. Windows/Linux printing is hidden, but their plugin
+build graph still downloads PDFium 5200 without archive hash. DO NOT release those
+builds until backend/version/integrity/notices are replaced or qualified. See README.
+
+Eight new printing tests cover byte preservation/landscape format, restrictions,
+missing/changed copies, size bounds, closure, repeat/cancel/retry and invalid/mixed
+page dimensions. Full suite passes 48 Flutter tests (4 optional captures skipped),
+9 tooling tests, source audit, formatting and analyzer. macOS release build succeeds
+(67.3MB). Actual native print preview displays the synthetic 3-page sample correctly;
+Cancel returns to the reader. No printer was selected and no job was sent. Physical
+printer output, drivers, landscape/mixed-document fixtures and mobile devices remain
+unqualified. This is not Adobe feature parity or a qualified binary release.

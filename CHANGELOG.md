@@ -19,3 +19,7 @@
 
 - Fixed first-run native cache creation after manual macOS share testing; added
   real native cache-provider coverage and a missing-directory regression.
+- Added explicit offline system printing on Apple/Android for unchanged,
+  uniform-size, unprotected PDFs up to 64 MiB; sidecar notes excluded. Eight safety
+  tests and macOS sample print-preview/cancel acceptance pass. Windows/Linux
+  printing and all installer publication remain blocked pending native review.
