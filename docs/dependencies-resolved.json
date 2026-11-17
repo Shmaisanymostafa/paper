@@ -1,5 +1,5 @@
 {
-  "lockSha256": "ff23a71198de5341d7ca0eb1f46772a8ecbd5c4f49c28bb1068ad3c02b1a6529",
+  "lockSha256": "39c1e7503c69c782df06c45999d7b8316eaa85781a8999854c52681342d428ec",
   "packages": [
     {
       "package": "archive",
@@ -67,6 +67,11 @@
       "licenseSha256": "0371d1da6a57fb791db29d29b95333429205f51f3cb2eb3a0c12d91838a38744"
     },
     {
+      "package": "ffi_leak_tracker",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "332f290333e64ed007b4f59aeeebd8fd3ceaadfbfa226a6cf2a3ab1583281624"
+    },
+    {
       "package": "file",
       "licenseFile": "LICENSE",
       "licenseSha256": "f6df86b1412172537273e8e80ee2fb8a66aa7307ce0b39ea5ddab47ca41b8c49"
@@ -110,6 +115,11 @@
       "package": "file_selector_windows",
       "licenseFile": "LICENSE",
       "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "package": "fixnum",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff0b91d4f3c32b25cb6ec84985e8da89b0ba2a2b2f7eef353cda5e5423a20390"
     },
     {
       "package": "flutter",
@@ -242,6 +252,11 @@
       "licenseSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a"
     },
     {
+      "package": "mime",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
       "package": "native_toolchain_c",
       "licenseFile": "LICENSE",
       "licenseSha256": "aa81abb1ac43e40d2f5a606385edd37e974a5858d4109f7f439dd43d964487a7"
@@ -347,6 +362,16 @@
       "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
     },
     {
+      "package": "share_plus",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "eb9741a672906ebd01fd9b3bef38f6c82eff250e91149cf404539ee7981079fd"
+    },
+    {
+      "package": "share_plus_platform_interface",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "3b38d48befd0af70b892e13d10c9e34679416c24a9277f962629951c64d71f4c"
+    },
+    {
       "package": "sky_engine",
       "licenseFile": "LICENSE",
       "licenseSha256": "3c0040023a5789bf56d6bf41fd44f08b21758523d41f128fb7dd6beb398d1191"
@@ -437,6 +462,11 @@
       "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
     },
     {
+      "package": "uuid",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "ad3e5523e51004e94ba9ce728805b1b4242dbccdb65e62b523800e35a8a7cfdc"
+    },
+    {
       "package": "vector_math",
       "licenseFile": "LICENSE",
       "licenseSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
@@ -455,6 +485,11 @@
       "package": "webdriver",
       "licenseFile": "LICENSE",
       "licenseSha256": "74cb46b123c9fa918ea8e0a0f5be736a1cd661edf145ccc723dc7ce30324ebab"
+    },
+    {
+      "package": "win32",
+      "licenseFile": "LICENSE",
+      "licenseSha256": "87ef8bccdd619f2345ba5b9026cf1d6cccb305e36ab83849a8a3af9293abde7e"
     },
     {
       "package": "xdg_directories",

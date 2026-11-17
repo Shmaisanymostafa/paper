@@ -11,6 +11,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../data/library_repository.dart';
 import '../domain/library.dart';
+import '../services/document_share.dart';
 import 'strings.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -30,6 +31,8 @@ class ReaderScreen extends StatefulWidget {
 class _ReaderScreenState extends State<ReaderScreen>
     with WidgetsBindingObserver {
   final _controller = PdfViewerController();
+  final _documentShare = DocumentShare();
+  bool _sharing = false;
   final _searchField = TextEditingController();
   final _panelChanges = ValueNotifier<int>(0);
   late PaperDocument _document;
@@ -418,6 +421,50 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
+  Future<void> _shareDocument() async {
+    if (_sharing) return;
+    setState(() => _sharing = true);
+    try {
+      final includeNotes = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(s['shareDocument']),
+          content: SingleChildScrollView(child: Text(s['shareDetail'])),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(s['cancel']),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(s['pdfOnly']),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(s['pdfAndNotes']),
+            ),
+          ],
+        ),
+      );
+      if (includeNotes == null || !mounted) return;
+      final box = context.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return;
+      // A valid anchor is required by the iPad and macOS native popover.
+      final origin = box.localToGlobal(Offset.zero) & box.size;
+      await _documentShare.share(
+        repository: widget.repository,
+        document: _document,
+        origin: origin,
+        includeAnnotations: includeNotes,
+        isActive: () => mounted && !_closing,
+      );
+    } catch (_) {
+      _message('shareError');
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
+
   Future<void> _export() => _safely(() async {
     final text = AnnotationBundle(
       documentId: _document.id,
@@ -783,6 +830,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                     _openPanel(1);
                   case 'notes':
                     _openPanel(3);
+                  case 'share':
+                    unawaited(_shareDocument());
                   case 'export':
                     unawaited(_export());
                   case 'import':
@@ -811,6 +860,12 @@ class _ReaderScreenState extends State<ReaderScreen>
                 PopupMenuItem(value: 'contents', child: Text(s['outline'])),
                 PopupMenuItem(value: 'notes', child: Text(s['notes'])),
                 const PopupMenuDivider(),
+                if (DocumentShare.supported)
+                  PopupMenuItem(
+                    value: 'share',
+                    enabled: !_sharing,
+                    child: Text(s['shareDocument']),
+                  ),
                 PopupMenuItem(value: 'export', child: Text(s['export'])),
                 PopupMenuItem(value: 'import', child: Text(s['importNotes'])),
                 PopupMenuItem(value: 'info', child: Text(s['limitations'])),

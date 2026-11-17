@@ -8,7 +8,7 @@ reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 31 automated tests. Native runners and locked dependencies
+> static analysis and 39 automated tests. macOS PDFium sample integration passes. Native runners and locked dependencies
 > are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
 > Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
 
@@ -28,8 +28,9 @@ backend, advertising, analytics, remote font loading or app update service.
 Annotations are **app-local sidecars**, not standard annotations embedded in a
 PDF. They are not redactions. Share the original PDF plus the exported annotation
 JSON to carry them to another Cave Paper installation. On desktop, export uses
-Save As. On mobile, the first implementation offers explicit copying of the JSON;
-native share/export integration is not implemented.
+Save As. Mobile also retains explicit copying of the JSON. Android, iOS, macOS
+and Windows offer native Share PDF with optional annotation JSON; actual native
+share-sheet acceptance on each target remains pending.
 
 Existing forms and annotations may render through PDFium. **Form filling/saving,
 editing existing PDF text/images, OCR, digital signatures, redaction, printing,
@@ -115,8 +116,16 @@ grant trademark rights. Forks may rename the app.
 
 ## Repository status
 
-The intended destination is a **new public** repository, provisionally
-`Shmaisanymostafa/cave-paper`. It has not been created: the connected GitHub tool
-cannot create repositories, local `gh` is unauthenticated, and browser access
-failed. The source is kept separately from all existing Cave products. No CI,
-cloud project, hosting, payment or deployment has been enabled.
+Source is published at https://github.com/Shmaisanymostafa/paper.
+No qualified beta binaries are published. No CI, cloud project, hosting,
+payment or deployment has been enabled.
+
+## Explicit sharing
+
+Reading remains offline. **Share PDF** is an explicit user action on Android,
+iOS, macOS and Windows. It hands an unchanged PDF copy to the OS share sheet,
+optionally with a separate, **unencrypted** annotation JSON file. The JSON can
+contain highlighted text from protected PDFs. PDF password protection is retained;
+notes are not embedded. Users choose the recipient/destination in the system UI.
+Recipients and the system cache may retain copies. A selected share action is not
+proof of delivery. Linux keeps the existing annotation Save As flow.

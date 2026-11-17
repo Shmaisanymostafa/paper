@@ -65,3 +65,28 @@ and 31 Flutter tests (four optional capture tests skipped).
 
 This supersedes earlier public-repository blockers. Publication is development
 source, not a packaged beta, native acceptance pass or binary release.
+
+## 2026-11-17: explicit document sharing and native reader qualification
+
+Added Share PDF for Android/iOS/macOS/Windows using share_plus 13.3.0
+(BSD-3-Clause; resolved package notices regenerated). Users choose PDF-only or
+PDF plus unencrypted, fingerprint-bound annotation JSON after bilingual disclosure.
+PDF bytes/password protection are unchanged; no automatic delivery or external
+recipient is selected. Native results do not imply successful delivery. Shared
+copies remain in the OS temporary cache for asynchronous recipients.
+
+Independent source review corrected native path-backed filename behavior,
+reader-close cancellation, plaintext-note disclosure and Windows/UTF-8 filenames.
+Eight fake-data share tests cover bytes, populated notes, PDF-only privacy,
+changed/missing copies, repeats, retry, interrupted navigation and safe names.
+`python3 tool/check.py` passes: 9 tooling tests, source audit, format, analyzer,
+39 Flutter tests (4 optional screenshot tests skipped).
+
+A macOS debug build succeeded. Real PDFium integration passed on macOS:
+bundled three-page PDF opens, text extracts and page rasterization succeeds
+with Dart HTTP forbidden; imported PDF fingerprint remains unchanged. The test
+reported it could not foreground the app, so this is NOT visual desktop QA.
+Native share-sheet recipient/cancel acceptance, actual device builds/installs,
+Open With/default-handler flows, native notices/security qualification and
+release packaging remain gates. No beta artifact was published. This remains
+an offline reader, not full Acrobat feature parity.
