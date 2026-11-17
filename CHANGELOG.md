@@ -16,3 +16,6 @@
   navigation protection. PDF password protection and original bytes are preserved.
 - Added eight sharing regression tests; macOS PDFium sample integration now passes.
 - No beta publication or claim of native share-sheet/device acceptance yet.
+
+- Fixed first-run native cache creation after manual macOS share testing; added
+  real native cache-provider coverage and a missing-directory regression.

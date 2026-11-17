@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:cave_paper/services/document_share.dart';
+import 'package:share_plus/share_plus.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -38,6 +41,21 @@ void main() {
           expect(image, isNotNull);
           image?.dispose();
           await repo.verifyDocument(imported);
+          var handedOff = false;
+          await DocumentShare(
+            share: (params) async {
+              expect(await params.files!.first.readAsBytes(), source);
+              expect(params.files!.first.path.endsWith('/sample.pdf'), isTrue);
+              handedOff = true;
+              return const ShareResult('', ShareResultStatus.dismissed);
+            },
+          ).share(
+            repository: repo,
+            document: imported,
+            origin: const Rect.fromLTWH(0, 0, 100, 100),
+            includeAnnotations: true,
+          );
+          expect(handedOff, isTrue);
         } finally {
           await doc.dispose();
         }

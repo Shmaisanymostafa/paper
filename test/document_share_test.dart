@@ -179,6 +179,26 @@ void main() {
     expect(calls, 2);
   });
 
+  test('first-run native cache path is created before staging', () async {
+    final fresh = Directory('${temp.path}/uncreated/cache');
+    var calls = 0;
+    final exporter = DocumentShare(
+      temporaryDirectory: () async => fresh,
+      share: (params) async {
+        calls++;
+        expect(await params.files!.first.readAsBytes(), pdf);
+        return const ShareResult('', ShareResultStatus.dismissed);
+      },
+    );
+    await exporter.share(
+      repository: repo,
+      document: doc,
+      origin: origin,
+      includeAnnotations: false,
+    );
+    expect(calls, 1);
+  });
+
   test('navigation during asynchronous preparation cancels handoff', () async {
     var active = true;
     var calls = 0;

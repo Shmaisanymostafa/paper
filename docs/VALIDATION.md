@@ -90,3 +90,27 @@ Native share-sheet recipient/cancel acceptance, actual device builds/installs,
 Open With/default-handler flows, native notices/security qualification and
 release packaging remain gates. No beta artifact was published. This remains
 an offline reader, not full Acrobat feature parity.
+
+### Native release-candidate acceptance follow-up (2026-11-17)
+
+Manual macOS release-mode testing caught a first-run cache bug: the native path
+provider can return an app cache directory that does not exist yet. Sharing now
+creates it before staging. Added a missing-cache unit regression and extended the
+real PDFium integration test to exercise the actual native cache provider and
+verify shared PDF bytes before a fake handoff.
+
+Final checks: 40 Flutter tests pass (4 optional captures skipped), 9 tooling tests,
+source audit, formatting and analyzer pass. The extended real macOS integration
+passes. Universal macOS release build succeeds (67 MB). In the actual release
+app, the synthetic PDF renders and survives restart. Native share picker opens
+for PDF-only (correct document title) and PDF+JSON (2 documents); both were
+cancelled without selecting a recipient. The combined flow was reconfirmed after
+restart; rapid repeated native picker behavior merits more device acceptance.
+Sample source and imported-copy SHA256 remain equal after testing.
+
+`codesign --verify --deep --strict` passes on the local candidate, but the build
+is ad-hoc signed with no TeamIdentifier and its effective entitlements include
+get-task-allow. It is NOT a distributable/notarized beta. No defaults changed,
+no files sent, and no release published. Exact Apple PDFium XCFramework notice/
+security qualification, distribution signing/notarization, other device/OS
+acceptance and the remaining RELEASE.md gates still block public beta packaging.

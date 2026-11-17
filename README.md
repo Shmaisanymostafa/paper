@@ -8,7 +8,7 @@ reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 39 automated tests. macOS PDFium sample integration passes. Native runners and locked dependencies
+> static analysis and 40 automated tests. macOS PDFium sample integration passes. Native runners and locked dependencies
 > are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
 > Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
 

@@ -43,6 +43,8 @@ class DocumentShare {
       final file = repository.documentFile(document.id);
       final title = safeName(document.title);
       final cache = await _temporaryDirectory();
+      // Native providers may return an app-specific path that does not exist yet.
+      await cache.create(recursive: true);
       final directory = await cache.createTemp('cave-paper-share-');
       // Path-backed files ignore name overrides on some native platforms.
       // Copy by streaming into a unique cache folder, never into the library.
