@@ -138,3 +138,24 @@ page dimensions. Full suite passes 48 Flutter tests (4 optional captures skipped
 Cancel returns to the reader. No printer was selected and no job was sent. Physical
 printer output, drivers, landscape/mixed-document fixtures and mobile devices remain
 unqualified. This is not Adobe feature parity or a qualified binary release.
+
+### PDF handler and mobile compilation pass (2026-11-17)
+
+Read-only macOS LaunchServices inspection confirms the built app claims
+`com.adobe.pdf` as Viewer/Alternate with `PaperPDF.icns`. No default handler was
+set. Source plists lint successfully. Added Android intent/permission, iOS
+Viewer/Alternate, Linux desktop-entry and Gradle checksum regression tests.
+Full Flutter/analyzer/source checks pass; tooling suite now has 13 tests.
+
+The iOS simulator debug build succeeds with no signing or installation. No iOS
+Open In/file-provider/device acceptance is implied. Android debug compilation
+was attempted but interrupted by execution-environment reconnection before an
+APK/result was produced; it is not a passed Android build. The wrapper now uses
+the smaller official Gradle 9.3.1 binary distribution rather than the unnecessary
+source/docs archive. Its downloaded checksum was verified against the official
+services.gradle.org SHA256 and pinned in wrapper properties.
+
+Windows native argument forwarding exists but installer ProgID/OpenWith
+registration is still NOT implemented. Linux has a desktop-entry template only.
+No Windows/Linux machine was available. The updated FILE_ASSOCIATIONS matrix
+separates manifest/source, native build and actual OS file-opening acceptance.

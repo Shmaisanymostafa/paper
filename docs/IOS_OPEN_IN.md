@@ -27,8 +27,7 @@ Source implementation, not a verified iOS release.
   The source only supports PDF Open In,
   not a universal iOS default viewer setting or every share-extension surface.
 
-Validation performed: plist lint and Swift syntax parse only. No iOS build,
-provider download, simulator/device test or signing operation was run. Before
+Validation update 2026-11-17: plist lint, Swift source checks and an unsigned iOS simulator build pass. No provider download, Open In runtime/device test or signing operation was run. Before
 shipping verify cold and warm Files > Open In, iCloud/file-provider download,
 denied access, oversized/malformed PDF, repeated opens, multi-file order, disk
 pressure, cleanup after import and crash, unchanged original hashes, and a

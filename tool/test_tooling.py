@@ -8,6 +8,8 @@ import plistlib
 import struct
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
+import configparser
 
 HERE = Path(__file__).resolve().parent
 
@@ -65,6 +67,50 @@ class ToolingTests(unittest.TestCase):
         self.assertEqual(document['CFBundleTypeRole'], 'Viewer')
         project = (root / 'macos/Runner.xcodeproj/project.pbxproj').read_text()
         self.assertEqual(project.count('PaperPDF.icns in Resources'), 2)
+
+    def test_android_wrapper_uses_checksum_pinned_binary_distribution(self):
+        values = dict(line.split('=', 1) for line in
+                      (HERE.parent / 'android/gradle/wrapper/gradle-wrapper.properties').read_text().splitlines()
+                      if '=' in line and not line.startswith('#'))
+        self.assertTrue(values['distributionUrl'].endswith('/gradle-9.3.1-bin.zip'))
+        self.assertEqual(values['distributionSha256Sum'],
+                         'b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06')
+
+    def test_android_pdf_candidate_does_not_claim_web_or_storage_permissions(self):
+        manifest = ET.parse(HERE.parent / 'android/app/src/main/AndroidManifest.xml').getroot()
+        android = '{http://schemas.android.com/apk/res/android}'
+        activity = manifest.find('application/activity')
+        self.assertEqual(activity.get(android + 'launchMode'), 'singleTop')
+        filters = [f for f in activity.findall('intent-filter')
+                   if any(a.get(android + 'name') == 'android.intent.action.VIEW' for a in f.findall('action'))]
+        self.assertEqual(len(filters), 1)
+        values = filters[0].findall('data')
+        self.assertEqual({d.get(android + 'scheme') for d in values if d.get(android + 'scheme')}, {'file', 'content'})
+        self.assertEqual({d.get(android + 'mimeType') for d in values if d.get(android + 'mimeType')}, {'application/pdf'})
+        forbidden = {'android.permission.INTERNET', 'android.permission.MANAGE_EXTERNAL_STORAGE',
+                     'android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE'}
+        permissions = {p.get(android + 'name') for p in manifest.findall('uses-permission')}
+        self.assertFalse(permissions & forbidden)
+
+    def test_ios_open_in_is_pdf_viewer_not_forced_owner(self):
+        plist = plistlib.loads((HERE.parent / 'ios/Runner/Info.plist').read_bytes())
+        self.assertFalse(plist['FlutterDeepLinkingEnabled'])
+        self.assertTrue(plist['LSSupportsOpeningDocumentsInPlace'])
+        document = plist['CFBundleDocumentTypes'][0]
+        self.assertEqual(document['CFBundleTypeRole'], 'Viewer')
+        self.assertEqual(document['LSHandlerRank'], 'Alternate')
+        self.assertEqual(document['LSItemContentTypes'], ['com.adobe.pdf'])
+        self.assertNotIn('UTExportedTypeDeclarations', plist)
+
+    def test_linux_desktop_entry_accepts_files_without_default_change(self):
+        entry = configparser.ConfigParser(interpolation=None)
+        entry.read(HERE.parent / 'linux/packaging/technology.cave.paper.desktop')
+        values = entry['Desktop Entry']
+        self.assertEqual(values['Type'], 'Application')
+        self.assertEqual(values['Exec'], 'cave_paper %F')
+        self.assertEqual(values['MimeType'], 'application/pdf;')
+        self.assertEqual(values['Icon'], 'technology.cave.paper')
+        self.assertEqual(values['Terminal'], 'false')
 
     def test_interpolation_and_raw_regex_do_not_confuse_structural_check(self):
         self.assertEqual(audit.delimiter_errors("Text('${s['page']} ${doc.page}'); final r=RegExp(r'[a-z]');"), [])

@@ -7,7 +7,7 @@ Security-scoped access is released after import. Multiple files open sequentiall
 The user chooses Finder > Get Info > Open with > Change All, if desired.
 The app never changes system defaults automatically.
 
-Current verification: Dart adapter tests and analyzer only. Native cold/warm
+Current verification (2026-11-17): Dart adapter tests, analyzer and platform metadata regression tests pass. The actual macOS LaunchServices database lists the built app as a com.adobe.pdf Viewer/Alternate with PaperPDF.icns. No system default was changed. The iOS simulator build succeeds; native file-provider/Open In runtime tests are still pending. Native cold/warm
 launch, multiple-file, denied-file, sandbox and installed-app association tests
 remain required. This is not a verified macOS handler release.
 
@@ -27,9 +27,22 @@ handles initial and subsequent intents, copies off the UI thread with a 200MiB
 limit and releases only temporary files it owns. No storage-wide permission.
 
 The iOS UIScene/AppDelegate implementation and bounded coordinated imports are
-documented in IOS_OPEN_IN.md. Neither mobile adapter has native build/device
-acceptance evidence yet. Dart protocol tests cover queued cold paths and warm
+documented in IOS_OPEN_IN.md. The iOS simulator adapter compiles; physical-device/Open In acceptance is still pending. Android build qualification is still pending. Dart protocol tests cover queued cold paths and warm
 open delivery; they do not establish native platform correctness.
 
 Approved art is integrated into the Flutter interface; platform icon resources
 are packaged, with native installation/icon-cache checks still pending. Windows/Linux source handlers now use single-instance forwarding; native compilation and runtime checks remain pending.
+
+## Platform qualification matrix (2026-11-17)
+
+| Target | Registration evidence | Remaining gate |
+| --- | --- | --- |
+| macOS | Actual LaunchServices PDF Viewer/Alternate claim and document icon; release build passes | Installed cold/warm Open With and signing/notarization qualification |
+| iOS | PDF Viewer/Alternate plist, scene adapter, simulator build passes | Files/provider cold/warm Open In on device; no universal default-reader claim |
+| Android | file/content PDF VIEW filter, singleTop; source denies network/storage-wide permissions | APK build and device intent/chooser acceptance |
+| Windows | Source argument/IPC adapter only | Installer ProgID/OpenWith registration NOT implemented; native build/device tests |
+| Linux | application/pdf desktop-entry template and GApplication adapter | Desktop entry installation, native build/session-bus tests |
+
+Tests assert Apple Viewer/Alternate metadata, Android PDF-only local intents/no
+broad-storage permissions, and Linux file-argument desktop entry. These are
+regression guards, not substitutes for installation and OS chooser tests.
