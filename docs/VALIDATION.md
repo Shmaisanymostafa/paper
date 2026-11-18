@@ -351,3 +351,17 @@ fidelity and native Save dialog acceptance are not established by these tests.
 
 Independent final native/unit rerun also passed 4/4; source review found no
 blocking issue in this unexposed rotation foundation.
+
+### Rotation in Save selected pages
+
+The Save selected pages dialog now offers no additional rotation, 90° clockwise,
+180°, and 90° counterclockwise for the new copy only. The immutable request is
+validated by the dialog and revalidated by the page-copy service. Existing
+original-preservation, protected-file refusal and explicit fidelity warnings
+remain in place. The title/content share a dialog-managed scroll region so the
+consent checkbox stays reachable at 360×640 with 200% text; fixed actions remain
+explicit. Author analysis is clean and all 6 focused tests pass: four EN/AR
+normal/compact dialog cases plus real-PDF rotation and protected page-copy cases.
+These tests do not qualify the OS Save picker or the complete live reader flow.
+
+Independent final review and all 4 dialog cases passed with no missed-hit warnings.

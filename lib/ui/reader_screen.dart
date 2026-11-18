@@ -775,22 +775,20 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (_copyingPages || _pageCount == 0) return;
     setState(() => _copyingPages = true);
     try {
-      final text = await showDialog<String>(
+      final request = await showDialog<PageCopyRequest>(
         context: context,
         builder: (_) =>
             PageCopyDialog(page: _page, pageCount: _pageCount, strings: s),
       );
-      if (text == null || !mounted) return;
-      final pages = PageCopy.validateSelection(
-        text.split(',').map((v) => int.parse(v.trim())),
-        _pageCount,
-      );
+      if (request == null || !mounted) return;
+      final pages = PageCopy.validateSelection(request.pages, _pageCount);
       final target = await fs.getSaveLocation(suggestedName: 'pages-copy.pdf');
       if (target == null || !mounted) return;
       final bytes = await PageCopy().create(
         repository: widget.repository,
         document: _document,
         pages: pages,
+        clockwiseQuarterTurns: request.clockwiseQuarterTurns,
       );
       if (!mounted) return;
       await PageCopy.saveNewFile(

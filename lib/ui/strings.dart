@@ -5,6 +5,12 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'pageRotation': 'Rotate copied pages',
+    'pageRotation0': 'No additional rotation',
+    'pageRotation1': '90° clockwise',
+    'pageRotation2': '180°',
+    'pageRotation3': '90° counterclockwise',
+    'pageRotationHint': 'Applied to every selected page in the new copy only. The original stays unchanged. Text extraction order may change.',
     'fileAccessTitle': 'Choose what Paper can read',
     'fileAccessSelection': 'Choose a PDF in your device’s file picker. Paper does not scan all your files or request all-files access.',
     'fileAccessCopy': 'A private copy is added to this library. Your original stays unchanged. You can also open a PDF from another app using Open with or Share when supported.',
@@ -150,6 +156,12 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'pageRotation': 'تدوير الصفحات المنسوخة',
+    'pageRotation0': 'دون تدوير إضافي',
+    'pageRotation1': '٩٠° مع عقارب الساعة',
+    'pageRotation2': '١٨٠°',
+    'pageRotation3': '٩٠° عكس عقارب الساعة',
+    'pageRotationHint': 'يُطبّق على كل صفحة مختارة في النسخة الجديدة فقط. يبقى الأصل دون تغيير. قد يتغير ترتيب النص المستخرج.',
     'fileAccessTitle': 'اختر ما يمكن لكهف قراءته',
     'fileAccessSelection': 'اختر ملف PDF من منتقي الملفات في جهازك. لا يفحص التطبيق جميع ملفاتك ولا يطلب الوصول الشامل إليها.',
     'fileAccessCopy': 'تُضاف نسخة خاصة إلى المكتبة ويبقى الأصل دون تغيير. يمكنك أيضاً فتح PDF من تطبيق آخر عبر فتح باستخدام أو مشاركة عند دعم ذلك.',
