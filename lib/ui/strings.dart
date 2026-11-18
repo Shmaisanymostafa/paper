@@ -14,6 +14,11 @@ class PaperStrings {
     'readerFocusMode': 'Distraction-free reading',
     'readerShowControls': 'Show reading controls (Esc)',
     'library': 'Your library',
+    'libraryCollapseRail': 'Collapse library sidebar',
+    'libraryExpandRail': 'Expand library sidebar',
+    'libraryAppearance': 'Appearance',
+    'libraryAppearancePreview': 'App appearance preview',
+    'libraryAppearanceHint': 'Preview only. Save to apply; Cancel keeps your current appearance. PDF pages stay unchanged.',
     'libraryClearSearch': 'Clear search',
     'librarySearchDetail': 'Try a different title or clear your search.',
     'libraryResultCount': '{shown} of {total} documents',
@@ -135,6 +140,11 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'libraryCollapseRail': 'طي الشريط الجانبي للمكتبة',
+    'libraryExpandRail': 'توسيع الشريط الجانبي للمكتبة',
+    'libraryAppearance': 'المظهر',
+    'libraryAppearancePreview': 'معاينة مظهر التطبيق',
+    'libraryAppearanceHint': 'معاينة فقط. احفظ للتطبيق أو ألغِ للإبقاء على المظهر الحالي. صفحات PDF لا تتغير.',
     'libraryClearSearch': 'مسح البحث',
     'librarySearchDetail': 'جرّب عنواناً آخر أو امسح البحث.',
     'libraryResultCount': '{shown} من {total} مستندات',

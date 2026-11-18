@@ -36,7 +36,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final List<String> _pendingExternal = [];
   bool _openingExternal = false;
   PaperLibrary? _library;
-  bool _busy = false;
+  bool _busy = false, _savingRail = false, _settingsOpen = false;
   String? _error;
   String _query = '';
   final _searchController = TextEditingController();
@@ -249,74 +249,164 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _settings() async {
-    var current = widget.settings;
-    final result = await showDialog<PaperSettings>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
-          title: Text(s['settings']),
-          content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DropdownButtonFormField<Appearance>(
-                  initialValue: current.appearance,
-                  decoration: InputDecoration(labelText: s['appearance']),
-                  items: [
-                    for (final v in Appearance.values)
-                      DropdownMenuItem(value: v, child: Text(s[v.name])),
+    if (_settingsOpen) return;
+    _settingsOpen = true;
+    try {
+      var current = widget.settings;
+      final result = await showDialog<PaperSettings>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, update) => AlertDialog(
+            title: Text(s['settings']),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButtonFormField<Appearance>(
+                      isExpanded: true,
+                      initialValue: current.appearance,
+                      decoration: InputDecoration(labelText: s['appearance']),
+                      items: [
+                        for (final v in Appearance.values)
+                          DropdownMenuItem(
+                            value: v,
+                            child: Row(
+                              children: [
+                                Icon(_appearanceIcon(v)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    s[v.name],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          update(
+                            () => current = current.copyWith(appearance: v),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _appearancePreview(current.appearance),
+                    const SizedBox(height: 8),
+                    Text(s['libraryAppearanceHint']),
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: current.language,
+                      decoration: InputDecoration(labelText: s['language']),
+                      items: const [
+                        DropdownMenuItem(value: 'en', child: Text('English')),
+                        DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          update(() => current = current.copyWith(language: v));
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Text(s['dataFolder']),
+                    const SizedBox(height: 8),
+                    SelectableText(
+                      widget.repository.root.path,
+                      textDirection: TextDirection.ltr,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      update(() => current = current.copyWith(appearance: v));
-                    }
-                  },
                 ),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  initialValue: current.language,
-                  decoration: InputDecoration(labelText: s['language']),
-                  items: const [
-                    DropdownMenuItem(value: 'en', child: Text('English')),
-                    DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      update(() => current = current.copyWith(language: v));
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-                Text(s['dataFolder']),
-                const SizedBox(height: 8),
-                SelectableText(
-                  widget.repository.root.path,
-                  textDirection: TextDirection.ltr,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(s['cancel']),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, current),
+                child: Text(s['save']),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(s['cancel']),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, current),
-              child: Text(s['save']),
+        ),
+      );
+      if (result != null && mounted) {
+        await _run(() async {
+          await widget.onSettingsChanged(result);
+          await _load();
+        });
+      }
+    } finally {
+      _settingsOpen = false;
+    }
+  }
+
+  IconData _appearanceIcon(Appearance appearance) => switch (appearance) {
+    Appearance.system => Icons.brightness_auto_outlined,
+    Appearance.light => Icons.light_mode_outlined,
+    Appearance.dark => Icons.dark_mode_outlined,
+  };
+
+  Widget _appearancePreview(Appearance appearance) {
+    final dark =
+        appearance == Appearance.dark ||
+        (appearance == Appearance.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    final colors = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF147F79),
+      brightness: dark ? Brightness.dark : Brightness.light,
+    );
+    return Semantics(
+      label: s['libraryAppearancePreview'],
+      child: Container(
+        key: const ValueKey('library-appearance-preview'),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: dark ? const Color(0xFF10232C) : const Color(0xFFF5F7F6),
+          border: Border.all(color: colors.outline),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.description_outlined, color: colors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                s['libraryAppearancePreview'],
+                style: TextStyle(color: colors.onSurface),
+              ),
             ),
           ],
         ),
       ),
     );
-    if (result != null) {
-      await _run(() async {
-        await widget.onSettingsChanged(result);
-        await _load();
-      });
+  }
+
+  Future<void> _toggleLibraryRail() async {
+    if (_savingRail || _library == null) return;
+    setState(() => _savingRail = true);
+    try {
+      final next = await widget.repository.setLibraryRailCollapsed(
+        !_library!.settings.libraryRailCollapsed,
+      );
+      if (mounted) setState(() => _library = next);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(s['storageError'])));
+      }
+    } finally {
+      if (mounted) setState(() => _savingRail = false);
     }
   }
 
@@ -341,67 +431,129 @@ class _LibraryScreenState extends State<LibraryScreen> {
     ],
   );
 
-  Widget _navigation() => SafeArea(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Row(
-            children: [
-              Image.asset(
-                'assets/branding/app-logo.png',
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  s.appName,
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w600),
+  Widget _navigation({bool compact = false, bool collapsible = false}) =>
+      SafeArea(
+        child: LayoutBuilder(
+          builder: (context, bounds) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: bounds.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(compact ? 16 : 24),
+                      child: compact
+                          ? Image.asset(
+                              'assets/branding/app-logo.png',
+                              width: 32,
+                              height: 32,
+                            )
+                          : Row(
+                              children: [
+                                Image.asset(
+                                  'assets/branding/app-logo.png',
+                                  width: 32,
+                                  height: 32,
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: Text(
+                                    s.appName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                    if (collapsible)
+                      IconButton(
+                        tooltip:
+                            s[compact
+                                ? 'libraryExpandRail'
+                                : 'libraryCollapseRail'],
+                        onPressed: _savingRail || _library == null
+                            ? null
+                            : _toggleLibraryRail,
+                        icon: Icon(compact ? Icons.menu_open : Icons.menu),
+                      ),
+                    if (compact)
+                      IconButton(
+                        tooltip: s['library'],
+                        onPressed: () {},
+                        icon: const Icon(Icons.folder_open_outlined),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: ListTile(
+                          selected: true,
+                          leading: const Icon(Icons.folder_open_outlined),
+                          title: Text(s['library']),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    const Spacer(),
+                    if (compact) ...[
+                      IconButton(
+                        tooltip: s['libraryAppearance'],
+                        onPressed: _settings,
+                        icon: Icon(_appearanceIcon(widget.settings.appearance)),
+                      ),
+                      IconButton(
+                        tooltip: s['settings'],
+                        onPressed: _settings,
+                        icon: const Icon(Icons.settings_outlined),
+                      ),
+                      IconButton(
+                        tooltip: s['about'],
+                        onPressed: _about,
+                        icon: const Icon(Icons.info_outline),
+                      ),
+                    ] else ...[
+                      ListTile(
+                        leading: Icon(
+                          _appearanceIcon(widget.settings.appearance),
+                        ),
+                        title: Text(s['libraryAppearance']),
+                        subtitle: Text(s[widget.settings.appearance.name]),
+                        onTap: _settings,
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.settings_outlined),
+                        title: Text(s['settings']),
+                        onTap: _settings,
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.info_outline),
+                        title: Text(s['about']),
+                        onTap: _about,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          s['privacy'],
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: ListTile(
-            selected: true,
-            leading: const Icon(Icons.folder_open_outlined),
-            title: Text(s['library']),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),
-        const Spacer(),
-        ListTile(
-          leading: const Icon(Icons.settings_outlined),
-          title: Text(s['settings']),
-          onTap: _settings,
-        ),
-        ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: Text(s['about']),
-          onTap: _about,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            s['privacy'],
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-      ],
-    ),
-  );
+      );
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final wide = constraints.maxWidth >= 960;
+      final railCollapsed = _library?.settings.libraryRailCollapsed ?? false;
       final hasQuery = _query.trim().isNotEmpty;
       final allDocuments = _library?.documents ?? <PaperDocument>[];
       final documents = libraryListing(
@@ -637,11 +789,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             );
       return Scaffold(
-        appBar: wide ? null : AppBar(title: Text(s.appName)),
+        appBar: wide
+            ? null
+            : AppBar(
+                title: Text(s.appName),
+                actions: [
+                  IconButton(
+                    tooltip: s['libraryAppearance'],
+                    onPressed: _settings,
+                    icon: Icon(_appearanceIcon(widget.settings.appearance)),
+                  ),
+                ],
+              ),
         drawer: wide ? null : Drawer(child: _navigation()),
         body: Row(
           children: [
-            if (wide) SizedBox(width: 244, child: _navigation()),
+            if (wide)
+              SizedBox(
+                width: railCollapsed ? 72 : 244,
+                child: _navigation(compact: railCollapsed, collapsible: true),
+              ),
             if (wide) const VerticalDivider(width: 1),
             Expanded(child: SafeArea(child: body)),
           ],

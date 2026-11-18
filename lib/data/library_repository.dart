@@ -260,6 +260,12 @@ class LibraryRepository {
     ),
   );
 
+  Future<PaperLibrary> setLibraryRailCollapsed(bool collapsed) => _mutate(
+    (state) => state.copyWith(
+      settings: state.settings.copyWith(libraryRailCollapsed: collapsed),
+    ),
+  );
+
   Future<PaperLibrary> setPinnedTools(int mask) {
     if (mask < 0 || mask > 255) {
       throw const LibraryFormatException('Invalid pinned tools.');

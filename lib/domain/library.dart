@@ -19,37 +19,44 @@ class PaperSettings {
     this.language = 'en',
     this.pinnedTools = 0,
     this.readerPanelVisible = true,
+    this.libraryRailCollapsed = false,
   });
   final Appearance appearance;
   final String language;
   // Eight stable reader tool bits. Unknown bits are rejected when loading.
   final int pinnedTools;
   final bool readerPanelVisible;
+  final bool libraryRailCollapsed;
   PaperSettings copyWith({
     Appearance? appearance,
     String? language,
     int? pinnedTools,
     bool? readerPanelVisible,
+    bool? libraryRailCollapsed,
   }) => PaperSettings(
     appearance: appearance ?? this.appearance,
     language: language ?? this.language,
     pinnedTools: pinnedTools ?? this.pinnedTools,
     readerPanelVisible: readerPanelVisible ?? this.readerPanelVisible,
+    libraryRailCollapsed: libraryRailCollapsed ?? this.libraryRailCollapsed,
   );
   Map<String, Object?> toJson() => {
     'appearance': appearance.name,
     'language': language,
     'pinnedTools': pinnedTools,
     'readerPanelVisible': readerPanelVisible,
+    'libraryRailCollapsed': libraryRailCollapsed,
   };
   factory PaperSettings.fromJson(Map<String, dynamic> json) {
     final appearance = json['appearance'];
     final language = json['language'];
     final pinnedTools = json['pinnedTools'] ?? 0;
     final readerPanelVisible = json['readerPanelVisible'] ?? true;
+    final libraryRailCollapsed = json['libraryRailCollapsed'] ?? false;
     if (!Appearance.values.any((v) => v.name == appearance) ||
         !['en', 'ar'].contains(language) ||
         readerPanelVisible is! bool ||
+        libraryRailCollapsed is! bool ||
         pinnedTools is! int ||
         pinnedTools < 0 ||
         pinnedTools > 255) {
@@ -60,6 +67,7 @@ class PaperSettings {
       language: language as String,
       pinnedTools: pinnedTools,
       readerPanelVisible: readerPanelVisible,
+      libraryRailCollapsed: libraryRailCollapsed,
     );
   }
 }
