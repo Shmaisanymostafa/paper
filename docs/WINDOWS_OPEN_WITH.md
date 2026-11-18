@@ -44,22 +44,46 @@ another process. The queue has at most eight outstanding paths plus one error
 sentinel. Rejections show the existing localized import error, throttled to avoid
 snackbar flooding. No source file is removed by `release`.
 
-## Optional installer registration (not implemented or executed)
+## Per-user installer registration source (not compiled or executed)
 
-A reviewed installer can register a per-user ProgID such as
-`Cave.Paper.PDF` under `HKCU\\Software\\Classes`, with:
+`windows/packaging/cave-paper.iss` adds a Windows x64 Inno Setup packaging source.
+It requires Windows 10 or later and checks key Release bundle files at compile
+time. It registers `Cave.Paper.PDF` under HKCU, adds only its own named value in
+`.pdf\OpenWithProgids`, and lists PDF capabilities in RegisteredApplications.
+The installed executable and `%1` are quoted separately; the approved packaged
+`pdf_document.ico` is copied explicitly and referenced as the document icon.
 
-- `shell\\open\\command`: a fully quoted absolute installed executable followed
-  by a separately quoted `"%1"` argument.
-- `DefaultIcon`: an approved packaged PDF icon resource and resource index.
-- `.pdf\\OpenWithProgids`: add `Cave.Paper.PDF` without replacing the `.pdf`
-  default value or editing the protected `UserChoice` key.
+The installer requests no elevation. One stable AppId upgrades the existing
+per-user installation. Uninstall removes its named registration values and only
+empty app-specific keys, never shared keys, another handler's values, the PDF
+extension default, or the protected UserChoice setting. It contains no recursive
+uninstall deletion, app-data deletion, post-install launch, or default-selection
+command. Existing originals and the user's document library are not installer
+payload. Install only in its dedicated application directory, not a data folder.
 
-This makes Cave Paper an available candidate, **not the forced default**. Users
-choose Windows Settings > Apps > Default apps or Open With > Choose another app.
-The selected default application's ProgID controls the displayed PDF icon; Cave
-Paper cannot promise its icon while another app remains default. Installer
-ownership/uninstall behavior and approved icons remain future packaging work.
+This makes Cave Paper a candidate, **not the forced default**. Users choose
+Windows Settings > Apps > Default apps or Open With > Choose another app.
+No registration was executed on any computer during this source implementation.
+
+Packaging is deliberately compile-blocked unless `PaperNativeQualified` is
+explicitly defined after dependency, notice, signing and native acceptance gates
+are met. `PaperVersion` and `PaperBuildDir` must also be supplied, with the latter
+pointing at a qualified Flutter Windows x64 Release bundle. The compile flag is
+an operator acknowledgement, not automatic proof of qualification. Do not enable
+it while the printing plugin's unverified PDFium dependency is unresolved.
+
+Seven Python source-regression checks cover per-user scope, the exact registry
+allowlist, command quoting, shared-key preservation and qualification guard.
+They are not an Inno compile or Windows install/uninstall test. Before shipping,
+compile with reviewed Inno Setup 6 tooling and test standard-user install,
+upgrade, uninstall, another existing PDF default, Unicode/space-containing paths,
+Open With discovery, default selection by user only, and preservation of foreign
+values in shared registry keys. Test uninstall when Paper was manually selected
+as default; the installer must not rewrite that user's choice to another app.
+
+References: [Microsoft Open With registration](https://learn.microsoft.com/en-us/windows/win32/shell/how-to-include-an-application-on-the-open-with-dialog-box),
+[Inno registry lifecycle](https://jrsoftware.org/ishelp/topic_registrysection.htm),
+[association refresh](https://jrsoftware.org/ishelp/topic_setup_changesassociations.htm).
 
 ## Required Windows validation before shipping
 
@@ -72,3 +96,4 @@ multiple installed versions, elevation mismatch and multiple Windows sessions.
 Verify one writer only, unchanged original PDF hashes, correctly localized errors,
 queue release, and no system-default changes. Installer association/icon testing
 is separate and has not been completed.
+

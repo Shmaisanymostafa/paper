@@ -40,9 +40,10 @@ are packaged, with native installation/icon-cache checks still pending. Windows/
 | macOS | Actual LaunchServices PDF Viewer/Alternate claim and document icon; release build passes | Installed cold/warm Open With and signing/notarization qualification |
 | iOS | PDF Viewer/Alternate plist, scene adapter, simulator build passes | Files/provider cold/warm Open In on device; no universal default-reader claim |
 | Android | file/content PDF VIEW filter, singleTop; source denies network/storage-wide permissions | APK build and device intent/chooser acceptance |
-| Windows | Source argument/IPC adapter only | Installer ProgID/OpenWith registration NOT implemented; native build/device tests |
+| Windows | Source argument/IPC adapter and per-user installer registration | Per-user installer ProgID/OpenWith source added; Inno compile, install/uninstall and native tests pending |
 | Linux | application/pdf desktop-entry template and GApplication adapter | Desktop entry installation, native build/session-bus tests |
 
 Tests assert Apple Viewer/Alternate metadata, Android PDF-only local intents/no
 broad-storage permissions, and Linux file-argument desktop entry. These are
 regression guards, not substitutes for installation and OS chooser tests.
+

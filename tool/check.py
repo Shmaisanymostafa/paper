@@ -17,6 +17,7 @@ def main() -> None:
         sys.exit('BLOCKED: Flutter/Dart SDK unavailable. No Flutter tests were run.')
     commands = [
         [sys.executable, 'tool/test_tooling.py'],
+        [sys.executable, 'tool/test_windows_packaging.py'],
         [sys.executable, 'tool/audit_source.py'],
         ['dart', 'format', '--output=none', '--set-exit-if-changed', 'lib', 'test', 'integration_test'],
         ['flutter', 'analyze', '--no-pub', '--fatal-infos'],
@@ -31,3 +32,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
