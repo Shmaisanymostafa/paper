@@ -5,6 +5,11 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'fileAccessTitle': 'Choose what Paper can read',
+    'fileAccessSelection': 'Choose a PDF in your device’s file picker. Paper does not scan all your files or request all-files access.',
+    'fileAccessCopy': 'A private copy is added to this library. Your original stays unchanged. You can also open a PDF from another app using Open with or Share when supported.',
+    'fileAccessOffline': 'Imported copies work offline. A cloud file provider may need internet to download a file before importing it. No default PDF app is changed.',
+    'fileAccessChoose': 'Choose PDF',
     'pageThumbnails': 'Pages',
     'selectionActionError':
         'Could not use this selection. Select the text again and retry.',
@@ -145,6 +150,11 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'fileAccessTitle': 'اختر ما يمكن لكهف قراءته',
+    'fileAccessSelection': 'اختر ملف PDF من منتقي الملفات في جهازك. لا يفحص التطبيق جميع ملفاتك ولا يطلب الوصول الشامل إليها.',
+    'fileAccessCopy': 'تُضاف نسخة خاصة إلى المكتبة ويبقى الأصل دون تغيير. يمكنك أيضاً فتح PDF من تطبيق آخر عبر فتح باستخدام أو مشاركة عند دعم ذلك.',
+    'fileAccessOffline': 'تعمل النسخ المستوردة دون إنترنت. قد يحتاج مزود الملفات السحابي إلى الإنترنت لتنزيل الملف أولاً. لا يتغير تطبيق PDF الافتراضي.',
+    'fileAccessChoose': 'اختيار PDF',
     'pageThumbnails': 'الصفحات',
     'selectionActionError':
         'تعذر استخدام النص المحدد. حدده مجدداً ثم أعد المحاولة.',

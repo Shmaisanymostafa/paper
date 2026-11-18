@@ -14,6 +14,7 @@ import '../domain/library.dart';
 import 'reader_screen.dart';
 import '../domain/library_listing.dart';
 import 'strings.dart';
+import 'file_access_dialog.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({
@@ -37,6 +38,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   bool _openingExternal = false;
   PaperLibrary? _library;
   bool _busy = false, _savingRail = false, _settingsOpen = false;
+  bool _explainedImport = false;
   String? _error;
   String _query = '';
   final _searchController = TextEditingController();
@@ -147,6 +149,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
         ),
       );
     } else {
+      if (!_explainedImport && (_library?.documents.isEmpty ?? true)) {
+        final accepted = await showDialog<bool>(
+          context: context,
+          builder: (_) => FileAccessDialog(strings: s),
+        );
+        if (accepted != true || !mounted) return;
+        _explainedImport = true;
+      }
       final file = await fs.openFile(
         acceptedTypeGroups: const [
           fs.XTypeGroup(

@@ -321,3 +321,16 @@ stress. The native preview remains untouched.
 
 Independent final thumbnail source review and both focused tests passed (2/2);
 physical/native page-preview acceptance remains pending.
+
+### Privacy-first import guidance
+
+An empty-library first import explains system-selected PDF access, a private
+local copy, unchanged originals, cloud-provider download requirements and no
+automatic default-app changes. Cancel returns before the existing file picker;
+a busy gate prevents repeated concurrent imports. This adds no storage permission,
+folder enumeration or persistent grant. Author analysis is clean and 7 tests
+(dialog EN/AR at 2x text plus app layouts/localization) pass. Dialog tests verify
+explicit results/layout, not a native picker zero-call integration test. Source
+inspection verifies the early return; mobile picker acceptance remains pending.
+
+Independent final source review and both focused dialog tests passed (2/2).
