@@ -183,3 +183,15 @@ the controls usable. The isolated navigation widget passes English/Arabic tests
 at 320 pixels with 2x text (actions, limits and RTL ordering). Final source static
 analysis passes. Native whole-reader acceptance of this later footer change is
 still pending; the owner's active preview was not interrupted for tests.
+
+### Page-copy foundation (not exposed in the reader)
+
+On macOS, the headless native test passed with HTTP blocked using the existing
+local PDFium library (`PDFIUM_PATH=build/native_assets/macos/libpdfium.dylib`).
+It selects pages 3, 1, 3 from the synthetic sample, saves a separate temporary PDF,
+reopens it, verifies each page's text and render, rejects out-of-range page 4,
+and verifies unchanged source bytes and library metadata. Unit tests cover
+selection order/duplicates, immutable request capture, empty/invalid selections
+and the 1,000-page bound. Protected-document fixtures, large-file stress, native
+save dialogs, and other target platforms remain unqualified. No new dependency
+or license was introduced; existing PDFium distribution gates still apply.

@@ -71,3 +71,20 @@ document-editing adapter and genuine round-trip tests. Do not implement those by
 painting a Flutter overlay and calling the PDF saved. OCR, signed-PDF handling,
 content redaction, operating-system file associations and printing are separate
 milestones. No account/backend is needed to add them.
+
+## Page-copy editing foundation
+
+`PageCopy` is a non-UI foundation for selecting/reordering/duplicating pages into
+new PDF bytes using the existing pinned pdfrx/PDFium dependency. It never writes
+the source or library index. A future Save As workflow must ask for a distinct
+output destination and disclose that document-level forms, signatures, outlines
+and app-local sidecar annotations are not preserved by this operation. This is
+not text editing, form editing, redaction, OCR or signature support.
+
+Requests are snapshotted and bounded to 1,000 output pages. Inputs and encoded
+outputs are limited to 64 MiB; encoding itself can transiently allocate more,
+so this byte limit is not an operating-system memory cap. Encrypted or
+assembly-restricted documents are rejected, not decrypted into unsecured output.
+The original fingerprint is verified before and after copying; output is opened
+again and its page count checked before return. Source/output handles are disposed
+on failures. Native libraries and platform release gates are unchanged.
