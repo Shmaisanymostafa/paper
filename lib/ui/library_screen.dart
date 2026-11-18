@@ -12,6 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 import 'reader_screen.dart';
+import '../domain/library_listing.dart';
 import 'strings.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -38,6 +39,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   bool _busy = false;
   String? _error;
   String _query = '';
+  final _searchController = TextEditingController();
+  LibrarySort _sort = LibrarySort.recent;
   PaperStrings get s => widget.strings;
   @override
   void initState() {
@@ -53,11 +56,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _external.dispose();
     for (final path in _pendingExternal) {
       unawaited(_external.release(path));
     }
     super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _query = '');
   }
 
   Future<void> _drainExternal() async {
@@ -393,17 +402,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final wide = constraints.maxWidth >= 960;
-      final documents =
-          (_library?.documents ?? [])
-              .where(
-                (d) => d.title.toLowerCase().contains(_query.toLowerCase()),
-              )
-              .toList()
-            ..sort(
-              (a, b) => (b.lastOpenedAt ?? b.importedAt).compareTo(
-                a.lastOpenedAt ?? a.importedAt,
-              ),
-            );
+      final hasQuery = _query.trim().isNotEmpty;
+      final allDocuments = _library?.documents ?? <PaperDocument>[];
+      final documents = libraryListing(
+        allDocuments,
+        query: _query,
+        sort: _sort,
+      );
       final body = _error != null
           ? Center(
               child: Padding(
@@ -420,146 +425,215 @@ class _LibraryScreenState extends State<LibraryScreen> {
             )
           : _library == null
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (widget.repository.warning != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: MaterialBanner(
-                      content: Text(s[widget.repository.warning!]),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              setState(() => widget.repository.warning = null),
-                          child: Text(s['close']),
-                        ),
-                      ],
-                    ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.all(wide ? 32 : 20),
+          : CustomScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        s['library'],
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(s['tagline']),
-                      const SizedBox(height: 24),
-                      TextField(
-                        onChanged: (v) => setState(() => _query = v),
-                        decoration: InputDecoration(
-                          labelText: s['searchLibrary'],
-                          prefixIcon: const Icon(Icons.search),
+                      if (widget.repository.warning != null)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: MaterialBanner(
+                            content: Text(s[widget.repository.warning!]),
+                            actions: [
+                              TextButton(
+                                onPressed: () => setState(
+                                  () => widget.repository.warning = null,
+                                ),
+                                child: Text(s['close']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Padding(
+                        padding: EdgeInsets.all(wide ? 32 : 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              s['library'],
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(s['tagline']),
+                            const SizedBox(height: 24),
+                            TextField(
+                              controller: _searchController,
+                              onChanged: (v) => setState(() => _query = v),
+                              decoration: InputDecoration(
+                                labelText: s['searchLibrary'],
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon: _query.isEmpty
+                                    ? null
+                                    : IconButton(
+                                        tooltip: s['libraryClearSearch'],
+                                        onPressed: _clearSearch,
+                                        icon: const Icon(Icons.close),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: _busy ? null : () => _import(),
+                                  icon: const Icon(Icons.add),
+                                  label: Text(s['open']),
+                                ),
+                                OutlinedButton.icon(
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _import(sample: true),
+                                  icon: const Icon(Icons.auto_stories_outlined),
+                                  label: Text(s['sample']),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          FilledButton.icon(
-                            onPressed: _busy ? null : () => _import(),
-                            icon: const Icon(Icons.add),
-                            label: Text(s['open']),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: _busy
-                                ? null
-                                : () => _import(sample: true),
-                            icon: const Icon(Icons.auto_stories_outlined),
-                            label: Text(s['sample']),
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          20,
+                          0,
+                          20,
+                          12,
+                        ),
+                        child: Wrap(
+                          spacing: 16,
+                          runSpacing: 12,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              s['libraryResultCount']
+                                  .replaceAll('{shown}', '${documents.length}')
+                                  .replaceAll(
+                                    '{total}',
+                                    '${allDocuments.length}',
+                                  ),
+                            ),
+                            SizedBox(
+                              width: 220,
+                              child: DropdownButtonFormField<LibrarySort>(
+                                initialValue: _sort,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: s['librarySort'],
+                                ),
+                                items: [
+                                  for (final sort in LibrarySort.values)
+                                    DropdownMenuItem(
+                                      value: sort,
+                                      child: Text(s[sort.label]),
+                                    ),
+                                ],
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() => _sort = value);
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      if (_busy) const LinearProgressIndicator(),
                     ],
                   ),
                 ),
-                if (_busy) const LinearProgressIndicator(),
-                Expanded(
-                  child: documents.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.description_outlined,
-                                  size: 72,
-                                  color: Theme.of(context).colorScheme.primary,
+                if (documents.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.description_outlined,
+                              size: 72,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              !hasQuery ? s['empty'] : s['noMatch'],
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              !hasQuery
+                                  ? s['emptyDetail']
+                                  : s['librarySearchDetail'],
+                              textAlign: TextAlign.center,
+                            ),
+                            if (hasQuery)
+                              TextButton(
+                                onPressed: _clearSearch,
+                                child: Text(s['libraryClearSearch']),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    sliver: SliverList.separated(
+                      itemCount: documents.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final doc = documents[index];
+                        return Card(
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            leading: Image.asset(
+                              'assets/branding/pdf-icon.png',
+                              width: 36,
+                              height: 44,
+                              fit: BoxFit.contain,
+                            ),
+                            title: Text(
+                              doc.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '${(doc.byteLength / 1048576).toStringAsFixed(1)} MiB · ${s['page']} ${doc.lastPage} · ${doc.notes.length} ${s['notes']}',
+                            ),
+                            onTap: _busy ? null : () => _run(() => _read(doc)),
+                            trailing: PopupMenuButton<String>(
+                              tooltip: s['tools'],
+                              onSelected: (v) {
+                                if (v == 'rename') unawaited(_rename(doc));
+                                if (v == 'remove') unawaited(_remove(doc));
+                              },
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'rename',
+                                  child: Text(s['rename']),
                                 ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  _query.isEmpty ? s['empty'] : s['noMatch'],
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  s['emptyDetail'],
-                                  textAlign: TextAlign.center,
+                                PopupMenuItem(
+                                  value: 'remove',
+                                  child: Text(s['delete']),
                                 ),
                               ],
                             ),
                           ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                          itemCount: documents.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final doc = documents[index];
-                            return Card(
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                leading: Image.asset(
-                                  'assets/branding/pdf-icon.png',
-                                  width: 36,
-                                  height: 44,
-                                  fit: BoxFit.contain,
-                                ),
-                                title: Text(
-                                  doc.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  '${(doc.byteLength / 1048576).toStringAsFixed(1)} MiB · ${s['page']} ${doc.lastPage} · ${doc.notes.length} ${s['notes']}',
-                                ),
-                                onTap: _busy
-                                    ? null
-                                    : () => _run(() => _read(doc)),
-                                trailing: PopupMenuButton<String>(
-                                  tooltip: s['tools'],
-                                  onSelected: (v) {
-                                    if (v == 'rename') unawaited(_rename(doc));
-                                    if (v == 'remove') unawaited(_remove(doc));
-                                  },
-                                  itemBuilder: (_) => [
-                                    PopupMenuItem(
-                                      value: 'rename',
-                                      child: Text(s['rename']),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'remove',
-                                      child: Text(s['delete']),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
+                        );
+                      },
+                    ),
+                  ),
               ],
             );
       return Scaffold(

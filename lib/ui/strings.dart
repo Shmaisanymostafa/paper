@@ -6,6 +6,13 @@ class PaperStrings {
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
     'library': 'Your library',
+    'libraryClearSearch': 'Clear search',
+    'librarySearchDetail': 'Try a different title or clear your search.',
+    'libraryResultCount': '{shown} of {total} documents',
+    'librarySort': 'Sort by',
+    'librarySortRecent': 'Recently opened',
+    'librarySortTitle': 'Title',
+    'librarySortNewest': 'Recently imported',
     'tagline': 'A quieter place for your PDFs.',
     'open': 'Open a PDF',
     'sample': 'Try the sample',
@@ -120,6 +127,13 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'libraryClearSearch': 'مسح البحث',
+    'librarySearchDetail': 'جرّب عنواناً آخر أو امسح البحث.',
+    'libraryResultCount': '{shown} من {total} مستندات',
+    'librarySort': 'ترتيب حسب',
+    'librarySortRecent': 'المفتوحة مؤخراً',
+    'librarySortTitle': 'العنوان',
+    'librarySortNewest': 'المستوردة مؤخراً',
     'library': 'مكتبتك',
     'tagline': 'مساحة هادئة لملفات PDF.',
     'open': 'فتح ملف PDF',
