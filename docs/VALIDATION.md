@@ -365,3 +365,17 @@ normal/compact dialog cases plus real-PDF rotation and protected page-copy cases
 These tests do not qualify the OS Save picker or the complete live reader flow.
 
 Independent final review and all 4 dialog cases passed with no missed-hit warnings.
+
+### Selected-folder discovery foundation (not exposed)
+
+A shallow local-directory metadata scanner accepts an explicitly selected root,
+limits inspected entries, skips root/entry symlinks, and reports incomplete scans
+on cancellation, errors, or limit exhaustion. It reads no PDF contents, performs
+no imports/network calls, and changes no files or permissions. Ancestor symlinks
+are not a sandbox boundary, and hostile concurrent filesystem replacement is not
+covered; eventual import must revalidate files. The scanner is not wired to UI
+and is not Android SAF or iOS security-scoped folder support. Author analysis is
+clean and four synthetic filesystem tests pass, including late cancellation,
+entry limits, unchanged originals, missing roots, and skipped links.
+
+Independent source review and all four synthetic tests passed.
