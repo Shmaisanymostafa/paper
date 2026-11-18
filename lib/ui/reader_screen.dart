@@ -22,6 +22,7 @@ import 'reader_focus_frame.dart';
 import 'note_editor_dialog.dart';
 import 'reader_panel_sheet.dart';
 import 'selection_actions.dart';
+import 'page_thumbnails.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -336,6 +337,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     scheduleMicrotask(() {
       if (!mounted) return;
       setState(() => _page = page);
+      _panelChanges.value++;
       _pageTimer?.cancel();
       _pageTimer = Timer(
         const Duration(milliseconds: 500),
@@ -940,7 +942,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     listenable: _panelChanges,
     builder: (_, _) => DefaultTabController(
       key: ValueKey(_tab),
-      length: 4,
+      length: 5,
       initialIndex: _tab,
       child: Column(
         children: [
@@ -959,6 +961,10 @@ class _ReaderScreenState extends State<ReaderScreen>
               Tab(
                 icon: const Icon(Icons.sticky_note_2_outlined),
                 text: s['notes'],
+              ),
+              Tab(
+                icon: const Icon(Icons.view_agenda_outlined),
+                text: s['pageThumbnails'],
               ),
             ],
           ),
@@ -1076,6 +1082,22 @@ class _ReaderScreenState extends State<ReaderScreen>
                     ),
                   ],
                 ),
+                if (_pageCount > 0 && _controller.isReady)
+                  PageThumbnails(
+                    pageCount: _pageCount,
+                    currentPage: _page,
+                    pageLabel: (page) => '${s['page']} $page',
+                    previewBuilder: (page) => PdfPageView(
+                      key: ValueKey((_reload, page)),
+                      document: _controller.document,
+                      pageNumber: page,
+                      maximumDpi: 72,
+                    ),
+                    onSelected: (page) =>
+                        unawaited(_controller.goToPage(pageNumber: page)),
+                  )
+                else
+                  _empty('opening'),
               ],
             ),
           ),

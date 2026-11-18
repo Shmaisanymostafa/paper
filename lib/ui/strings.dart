@@ -5,6 +5,7 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'pageThumbnails': 'Pages',
     'selectionActionError':
         'Could not use this selection. Select the text again and retry.',
     'selectionLocalHighlight': 'Highlight locally',
@@ -144,6 +145,7 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'pageThumbnails': 'الصفحات',
     'selectionActionError':
         'تعذر استخدام النص المحدد. حدده مجدداً ثم أعد المحاولة.',
     'selectionLocalHighlight': 'تظليل محلي',

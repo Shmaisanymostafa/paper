@@ -306,3 +306,18 @@ acceptance remain pending; the owner's preview has not been restarted.
 
 Independent final selection/note rerun also passed 11/11 with no source blocker;
 native selection gesture/menu acceptance remains a separate gate.
+
+### Lazy page thumbnails
+
+A fifth reader tab lists original-page previews from the already-open document
+using pinned pdfrx PdfPageView (72 DPI limit), lazy list construction and zero
+scroll cache/no automatic keep-alive. This reduces eager rendering; it is not a
+hard native PDFium memory ceiling. Generation/page keys remount preview state on
+reload. Thumbnails do not embed/show Cave Paper sidecar annotations. Author
+analysis passes and 6 thumbnail/mobile tests pass, including RTL/LTR enlarged
+text, lazy construction, later-page navigation and selected/button semantics.
+Tests use synthetic preview widgets, not native PDF image fidelity or lifecycle
+stress. The native preview remains untouched.
+
+Independent final thumbnail source review and both focused tests passed (2/2);
+physical/native page-preview acceptance remains pending.
