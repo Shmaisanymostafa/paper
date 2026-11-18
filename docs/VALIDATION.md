@@ -265,3 +265,14 @@ LTR/RTL, portrait/landscape, 2x text, keyboard show/hide, query retention and
 route dismissal. Fixtures reproduce the fixed-header structure, not a full native
 PDF viewer; physical-device keyboard acceptance remains pending. No preview
 restart is part of this source batch.
+
+### Library rail and appearance discoverability
+
+Library sidebar collapse is remembered locally using a narrow serialized setting
+update. System/Light/Dark choices now have icons, a visible Appearance entry and
+a dialog-only preview; Cancel leaves stored appearance unchanged. PDF content
+is not recolored. Compact 2x-text dropdown constraints were corrected.
+Independent integrated checks passed 26/26 without skips (appearance, library
+listing, mobile panel, notes, toolbar settings and app layout), with clean static
+analysis. A test-only braces lint was fixed before that rerun. No native preview
+restart or physical-device theme acceptance is included.

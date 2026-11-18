@@ -155,8 +155,9 @@ void main() {
                         .widget<MaterialApp>(find.byType(MaterialApp))
                         .themeMode ==
                     ThemeMode.dark &&
-                find.byType(LinearProgressIndicator).evaluate().isEmpty)
+                find.byType(LinearProgressIndicator).evaluate().isEmpty) {
               break;
+            }
           }
           expect(find.byType(LinearProgressIndicator), findsNothing);
           expect(
