@@ -379,3 +379,18 @@ clean and four synthetic filesystem tests pass, including late cancellation,
 entry limits, unchanged originals, missing roots, and skipped links.
 
 Independent source review and all four synthetic tests passed.
+
+### Explicit folder candidate selection UI (not wired to a picker)
+
+A reusable lazy-list dialog starts with no selected PDFs and returns only an
+explicitly chosen immutable subset, bounded to 20 by default. Cancel returns no
+selection. EN/AR wording distinguishes copying selected files from folder sync
+and warns when discovery is incomplete. Candidate enumeration is bounded before
+snapshot construction and duplicate paths are rejected. No file read, import,
+permission grant or storage mutation occurs in this dialog. It is not yet wired
+to the library or native folder pickers. Author analysis is clean and three
+focused tests pass: bounded/duplicate constructor inputs plus EN/AR 360×640 at
+200% text, actual selection/cancel callbacks, limit enforcement and immutable
+output. This is synthetic widget evidence, not a native mobile folder journey.
+
+Independent final source review and all three focused tests passed.

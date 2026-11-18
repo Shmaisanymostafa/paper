@@ -5,6 +5,15 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'folderSelectTitle': 'Choose PDFs to copy',
+    'folderSelectHint': 'Select up to the shown limit. Only selected files will be copied into Paper. Originals stay unchanged. This does not enable folder syncing.',
+    'folderSelectIncomplete':
+        'This list may be incomplete. Choose a smaller folder or retry.',
+    'folderSelectEmpty':
+        'No PDF candidates found in this folder. Subfolders are not scanned.',
+    'folderSelectCount': 'Selected files',
+    'folderSelectConfirm': 'Use selection',
+
     'pageRotation': 'Rotate copied pages',
     'pageRotation0': 'No additional rotation',
     'pageRotation1': '90° clockwise',
@@ -156,6 +165,14 @@ class PaperStrings {
     'annotationsError': 'The annotation file is invalid, too large, or belongs to a different PDF. Existing notes were kept.',
   };
   static const ar = <String, String>{
+    'folderSelectTitle': 'اختر ملفات PDF لنسخها',
+    'folderSelectHint': 'اختر حتى الحد الموضح. ستُنسخ الملفات المحددة فقط إلى كهف للملفات. تبقى الملفات الأصلية دون تغيير. لا يؤدي هذا إلى تفعيل مزامنة المجلد.',
+    'folderSelectIncomplete':
+        'قد تكون هذه القائمة غير مكتملة. اختر مجلداً أصغر أو أعد المحاولة.',
+    'folderSelectEmpty': 'لم يتم العثور على ملفات PDF في هذا المجلد. لا يتم فحص المجلدات الفرعية.',
+    'folderSelectCount': 'الملفات المحددة',
+    'folderSelectConfirm': 'استخدام التحديد',
+
     'pageRotation': 'تدوير الصفحات المنسوخة',
     'pageRotation0': 'دون تدوير إضافي',
     'pageRotation1': '٩٠° مع عقارب الساعة',
