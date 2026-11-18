@@ -14,6 +14,7 @@ import '../domain/library.dart';
 import '../services/document_share.dart';
 import '../services/document_print.dart';
 import 'strings.dart';
+import 'page_navigation.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -991,6 +992,16 @@ class _ReaderScreenState extends State<ReaderScreen>
     final ready = _pageCount > 0;
     final wide = MediaQuery.sizeOf(context).width >= 1000;
     final book = _document.bookmarks.contains(_page);
+    final navigation = PageNavigation(
+      page: _page,
+      pageCount: _pageCount,
+      strings: s,
+      onPrevious: ready
+          ? () => _controller.goToPage(pageNumber: _page - 1)
+          : null,
+      onNext: ready ? () => _controller.goToPage(pageNumber: _page + 1) : null,
+      onChoose: ready ? _goTo : null,
+    );
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -1144,54 +1155,60 @@ class _ReaderScreenState extends State<ReaderScreen>
                   horizontal: 12,
                   vertical: 6,
                 ),
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      tooltip: s['tools'],
-                      onPressed: ready
-                          ? () {
-                              if (wide) {
-                                setState(() => _panelVisible = !_panelVisible);
-                              } else {
-                                _openPanel(3);
-                              }
-                            }
-                          : null,
-                      icon: const Icon(Icons.view_sidebar_outlined),
-                    ),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: ready ? _goTo : null,
-                        child: Text(
-                          '${s['page']} $_page ${s['of']} $_pageCount',
+                    if (!wide) navigation,
+                    Row(
+                      children: [
+                        IconButton(
+                          tooltip: s['tools'],
+                          onPressed: ready
+                              ? () {
+                                  if (wide) {
+                                    setState(
+                                      () => _panelVisible = !_panelVisible,
+                                    );
+                                  } else {
+                                    _openPanel(3);
+                                  }
+                                }
+                              : null,
+                          icon: const Icon(Icons.view_sidebar_outlined),
                         ),
-                      ),
+                        if (wide)
+                          Expanded(child: navigation)
+                        else
+                          const Spacer(),
+                        IconButton(
+                          tooltip: s['zoomOut'],
+                          onPressed: ready
+                              ? () => _controller.zoomDown()
+                              : null,
+                          icon: const Icon(Icons.zoom_out),
+                        ),
+                        IconButton(
+                          tooltip: s['zoomIn'],
+                          onPressed: ready ? () => _controller.zoomUp() : null,
+                          icon: const Icon(Icons.zoom_in),
+                        ),
+                        IconButton(
+                          tooltip: s['fit'],
+                          onPressed: ready
+                              ? () => _controller.goToPage(
+                                  pageNumber: _page,
+                                  anchor: PdfPageAnchor.all,
+                                )
+                              : null,
+                          icon: const Icon(Icons.fit_screen),
+                        ),
+                        if (wide)
+                          Text(
+                            _saving ? s['saving'] : s['saved'],
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: s['zoomOut'],
-                      onPressed: ready ? () => _controller.zoomDown() : null,
-                      icon: const Icon(Icons.zoom_out),
-                    ),
-                    IconButton(
-                      tooltip: s['zoomIn'],
-                      onPressed: ready ? () => _controller.zoomUp() : null,
-                      icon: const Icon(Icons.zoom_in),
-                    ),
-                    IconButton(
-                      tooltip: s['fit'],
-                      onPressed: ready
-                          ? () => _controller.goToPage(
-                              pageNumber: _page,
-                              anchor: PdfPageAnchor.all,
-                            )
-                          : null,
-                      icon: const Icon(Icons.fit_screen),
-                    ),
-                    if (wide)
-                      Text(
-                        _saving ? s['saving'] : s['saved'],
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
                   ],
                 ),
               ),

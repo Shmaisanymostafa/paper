@@ -174,3 +174,12 @@ separates manifest/source, native build and actual OS file-opening acceptance.
   but the built application ran and its integration assertions passed.
 - Existing native signing, installer/device acceptance and PDFium provenance
   gates remain unchanged. No Acrobat editing parity is claimed.
+
+### Page arrow controls (2026-11-18)
+
+Previous/next buttons use logical page numbers, boundary disabling, localized
+labels and direction-aware icons. Compact readers use a two-row footer to keep
+the controls usable. The isolated navigation widget passes English/Arabic tests
+at 320 pixels with 2x text (actions, limits and RTL ordering). Final source static
+analysis passes. Native whole-reader acceptance of this later footer change is
+still pending; the owner's active preview was not interrupted for tests.
