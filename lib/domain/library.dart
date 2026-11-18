@@ -17,28 +17,41 @@ class PaperSettings {
   const PaperSettings({
     this.appearance = Appearance.system,
     this.language = 'en',
+    this.pinnedTools = 0,
   });
   final Appearance appearance;
   final String language;
-  PaperSettings copyWith({Appearance? appearance, String? language}) =>
-      PaperSettings(
-        appearance: appearance ?? this.appearance,
-        language: language ?? this.language,
-      );
+  // Eight stable reader tool bits. Unknown bits are rejected when loading.
+  final int pinnedTools;
+  PaperSettings copyWith({
+    Appearance? appearance,
+    String? language,
+    int? pinnedTools,
+  }) => PaperSettings(
+    appearance: appearance ?? this.appearance,
+    language: language ?? this.language,
+    pinnedTools: pinnedTools ?? this.pinnedTools,
+  );
   Map<String, Object?> toJson() => {
     'appearance': appearance.name,
     'language': language,
+    'pinnedTools': pinnedTools,
   };
   factory PaperSettings.fromJson(Map<String, dynamic> json) {
     final appearance = json['appearance'];
     final language = json['language'];
+    final pinnedTools = json['pinnedTools'] ?? 0;
     if (!Appearance.values.any((v) => v.name == appearance) ||
-        !['en', 'ar'].contains(language)) {
+        !['en', 'ar'].contains(language) ||
+        pinnedTools is! int ||
+        pinnedTools < 0 ||
+        pinnedTools > 255) {
       throw const LibraryFormatException('Invalid settings.');
     }
     return PaperSettings(
       appearance: Appearance.values.firstWhere((v) => v.name == appearance),
       language: language as String,
+      pinnedTools: pinnedTools,
     );
   }
 }

@@ -116,8 +116,8 @@ class _PaperAppState extends State<PaperApp> {
   }
 
   Future<void> _changeSettings(PaperSettings settings) async {
-    await widget.repository.setSettings(settings);
-    if (mounted) setState(() => _settings = settings);
+    final state = await widget.repository.setDisplaySettings(settings);
+    if (mounted) setState(() => _settings = state.settings);
   }
 
   ThemeData _theme(Brightness brightness) {

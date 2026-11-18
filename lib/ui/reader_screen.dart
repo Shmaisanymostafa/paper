@@ -34,6 +34,8 @@ class _ReaderScreenState extends State<ReaderScreen>
   final _controller = PdfViewerController();
   final _documentShare = DocumentShare();
   bool _sharing = false, _printing = false;
+  int _pinnedTools = 0;
+  bool _pinsReady = false, _customizing = false;
   bool _encrypted = true, _allowsPrinting = false, _uniformPages = false;
   double _printWidth = 0, _printHeight = 0;
   final _documentPrint = DocumentPrint();
@@ -54,7 +56,143 @@ class _ReaderScreenState extends State<ReaderScreen>
     _document = widget.document;
     _page = _document.lastPage;
     WidgetsBinding.instance.addObserver(this);
+    unawaited(_loadPins());
   }
+
+  Future<void> _loadPins() => _safely(() async {
+    final state = await widget.repository.load();
+    if (mounted) {
+      setState(() {
+        _pinnedTools = state.settings.pinnedTools;
+        _pinsReady = true;
+      });
+    }
+  });
+
+  List<_ReaderTool> get _tools => [
+    const _ReaderTool('note', 'newNote', Icons.sticky_note_2_outlined, 1),
+    const _ReaderTool('highlight', 'highlight', Icons.highlight, 2),
+    const _ReaderTool('contents', 'outline', Icons.format_list_bulleted, 4),
+    const _ReaderTool('notes', 'notes', Icons.notes, 8),
+    if (DocumentPrint.supported)
+      const _ReaderTool('print', 'printDocument', Icons.print_outlined, 16),
+    if (DocumentShare.supported)
+      const _ReaderTool('share', 'shareDocument', Icons.share_outlined, 32),
+    const _ReaderTool('export', 'export', Icons.file_upload_outlined, 64),
+    const _ReaderTool(
+      'import',
+      'importNotes',
+      Icons.file_download_outlined,
+      128,
+    ),
+  ];
+
+  bool _toolEnabled(_ReaderTool tool) =>
+      _pageCount > 0 &&
+      !(tool.id == 'print' && _printing) &&
+      !(tool.id == 'share' && _sharing);
+
+  Future<void> _customizeToolbar() async {
+    if (_customizing || !_pinsReady) return;
+    setState(() => _customizing = true);
+    var selected = _pinnedTools;
+    try {
+      final result = await showDialog<int>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, refresh) => AlertDialog(
+            title: Text(s['toolbarCustomize']),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(s['toolbarDetail']),
+                    for (final tool in _tools)
+                      CheckboxListTile(
+                        title: Text(s[tool.label]),
+                        secondary: Icon(tool.icon),
+                        value: (selected & tool.bit) != 0,
+                        onChanged: (checked) => refresh(() {
+                          selected = checked == true
+                              ? selected | tool.bit
+                              : selected & ~tool.bit;
+                        }),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(s['cancel']),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, selected),
+                child: Text(s['save']),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (result == null || !mounted) return;
+      final state = await widget.repository.setPinnedTools(result);
+      if (mounted) setState(() => _pinnedTools = state.settings.pinnedTools);
+    } catch (_) {
+      _message('storageError');
+    } finally {
+      if (mounted) setState(() => _customizing = false);
+    }
+  }
+
+  void _selectTool(String value) {
+    switch (value) {
+      case 'customize':
+        unawaited(_customizeToolbar());
+      case 'note':
+        unawaited(_addNote());
+      case 'highlight':
+        unawaited(_highlight());
+      case 'contents':
+        _openPanel(1);
+      case 'notes':
+        _openPanel(3);
+      case 'print':
+        unawaited(_printDocument());
+      case 'share':
+        unawaited(_shareDocument());
+      case 'export':
+        unawaited(_export());
+      case 'import':
+        unawaited(_importNotes());
+      case 'info':
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text(s['limitations']),
+              content: Text(s['readOnlyForms']),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(s['close']),
+                ),
+              ],
+            ),
+          ),
+        );
+    }
+  }
+
+  Widget _toolLabel(IconData icon, String label) => Row(
+    children: [
+      Icon(icon, size: 20),
+      const SizedBox(width: 12),
+      Flexible(child: Text(s[label])),
+    ],
+  );
 
   @override
   void dispose() {
@@ -877,66 +1015,56 @@ class _ReaderScreenState extends State<ReaderScreen>
               onPressed: ready ? _bookmark : null,
               icon: Icon(book ? Icons.bookmark : Icons.bookmark_outline),
             ),
+            for (final tool
+                in _tools
+                    .where((tool) => (_pinnedTools & tool.bit) != 0)
+                    .take(wide ? 3 : 1))
+              IconButton(
+                tooltip: s[tool.label],
+                onPressed: _toolEnabled(tool)
+                    ? () => _selectTool(tool.id)
+                    : null,
+                icon: Icon(tool.icon),
+              ),
             PopupMenuButton<String>(
               tooltip: s['tools'],
               enabled: ready,
-              onSelected: (value) {
-                switch (value) {
-                  case 'note':
-                    unawaited(_addNote());
-                  case 'highlight':
-                    unawaited(_highlight());
-                  case 'contents':
-                    _openPanel(1);
-                  case 'notes':
-                    _openPanel(3);
-                  case 'print':
-                    unawaited(_printDocument());
-                  case 'share':
-                    unawaited(_shareDocument());
-                  case 'export':
-                    unawaited(_export());
-                  case 'import':
-                    unawaited(_importNotes());
-                  case 'info':
-                    unawaited(
-                      showDialog<void>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: Text(s['limitations']),
-                          content: Text(s['readOnlyForms']),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(s['close']),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                }
-              },
+              onSelected: _selectTool,
               itemBuilder: (_) => [
-                PopupMenuItem(value: 'note', child: Text(s['newNote'])),
-                PopupMenuItem(value: 'highlight', child: Text(s['highlight'])),
-                PopupMenuItem(value: 'contents', child: Text(s['outline'])),
-                PopupMenuItem(value: 'notes', child: Text(s['notes'])),
+                PopupMenuItem<String>(
+                  enabled: false,
+                  child: Text(s['readingTools']),
+                ),
+                for (final tool in _tools.where((tool) => tool.bit < 16))
+                  PopupMenuItem(
+                    value: tool.id,
+                    enabled: _toolEnabled(tool),
+                    child: _toolLabel(tool.icon, tool.label),
+                  ),
                 const PopupMenuDivider(),
-                if (DocumentPrint.supported)
+                PopupMenuItem<String>(
+                  enabled: false,
+                  child: Text(s['fileTools']),
+                ),
+                for (final tool in _tools.where((tool) => tool.bit >= 16))
                   PopupMenuItem(
-                    value: 'print',
-                    enabled: !_printing,
-                    child: Text(s['printDocument']),
+                    value: tool.id,
+                    enabled: _toolEnabled(tool),
+                    child: _toolLabel(tool.icon, tool.label),
                   ),
-                if (DocumentShare.supported)
-                  PopupMenuItem(
-                    value: 'share',
-                    enabled: !_sharing,
-                    child: Text(s['shareDocument']),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'customize',
+                  enabled: _pinsReady && !_customizing,
+                  child: _toolLabel(
+                    Icons.push_pin_outlined,
+                    'toolbarCustomize',
                   ),
-                PopupMenuItem(value: 'export', child: Text(s['export'])),
-                PopupMenuItem(value: 'import', child: Text(s['importNotes'])),
-                PopupMenuItem(value: 'info', child: Text(s['limitations'])),
+                ),
+                PopupMenuItem(
+                  value: 'info',
+                  child: _toolLabel(Icons.info_outline, 'limitations'),
+                ),
               ],
             ),
           ],
@@ -1077,3 +1205,10 @@ class _ReaderScreenState extends State<ReaderScreen>
 
 String _noteId() =>
     '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x7fffffff)}';
+
+class _ReaderTool {
+  const _ReaderTool(this.id, this.label, this.icon, this.bit);
+  final String id, label;
+  final IconData icon;
+  final int bit;
+}

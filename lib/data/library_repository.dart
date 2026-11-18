@@ -245,6 +245,25 @@ class LibraryRepository {
   Future<PaperLibrary> setSettings(PaperSettings settings) =>
       _mutate((state) => state.copyWith(settings: settings));
 
+  Future<PaperLibrary> setDisplaySettings(PaperSettings settings) => _mutate(
+    (state) => state.copyWith(
+      settings: state.settings.copyWith(
+        appearance: settings.appearance,
+        language: settings.language,
+      ),
+    ),
+  );
+
+  Future<PaperLibrary> setPinnedTools(int mask) {
+    if (mask < 0 || mask > 255) {
+      throw const LibraryFormatException('Invalid pinned tools.');
+    }
+    return _mutate(
+      (state) =>
+          state.copyWith(settings: state.settings.copyWith(pinnedTools: mask)),
+    );
+  }
+
   Future<PaperLibrary> removeDocument(String id) => _locked(() async {
     final state = await _read();
     if (state.find(id) == null) return state;

@@ -159,3 +159,18 @@ Windows native argument forwarding exists but installer ProgID/OpenWith
 registration is still NOT implemented. Linux has a desktop-entry template only.
 No Windows/Linux machine was available. The updated FILE_ASSOCIATIONS matrix
 separates manifest/source, native build and actual OS file-opening acceptance.
+
+
+## Reader toolbar milestone (2026-11-18)
+
+- Flutter analysis and formatting pass; unit/widget suite: 52 pass, 4 skipped.
+- 25 Python packaging/tooling tests pass; source hygiene audit passes.
+- `flutter test integration_test/reader_toolbar_test.dart -d macos` passes with
+  HTTP forbidden and a temporary bundled sample PDF. Verifies cancel/no-write,
+  save/reopen of favorite tools, real PDF search results, compact Arabic RTL,
+  and unchanged original PDF bytes. Wide English is exercised at 1280 pixels,
+  compact Arabic at 390 pixels. This is not native release qualification.
+- The macOS test runner could not foreground the application (`open` returned 1),
+  but the built application ran and its integration assertions passed.
+- Existing native signing, installer/device acceptance and PDFium provenance
+  gates remain unchanged. No Acrobat editing parity is claimed.
