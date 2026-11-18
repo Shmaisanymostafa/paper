@@ -21,3 +21,24 @@ remains untouched. iOS1024px opacity and Windows six-size ICO structure verified
 iOS icon visually inspected. Native installation/icon-cache checks remain pending.
 
 `tool/package_icns.py` wraps approved 16–256px PDF PNG variants in ICNS without changing pixels. The macOS Viewer document type references this resource. Finder icon/cache and installed-app behavior remain unverified; no default application is changed.
+
+
+## Repository evidence and current verification limit (2026-11-18)
+
+The approved originals and platform variants exist in the repository. Library
+navigation/About and PDF-list source reference the originals; package scripts
+reference the same originals, preserve aspect ratio, and package native icons.
+This is repository/source evidence, not a fresh comparison with the original
+chat attachment bytes or a new native rendering check. The historical original
+hashes above were recorded during integration. Current attachment retrieval and
+GitHub binary access were unavailable in the cloud; neither hash was freshly
+recomputed in this pass. Existing approval remains valid; no new artwork was
+requested, generated or substituted.
+
+Windows ICO packaging now validates the six ordered sizes, PNG headers,
+dimensions, chunk checksums and complete endings before packaging. It validates
+both app and PDF sets before writing either output. Five synthetic regression
+tests verify offsets and byte-preserving payloads plus invalid-input rejection.
+These checks do not decode pixels or establish visual fidelity, native rendering,
+or installed OS icon-cache behavior. Existing production assets were not
+regenerated or changed in this source-only pass.
