@@ -195,3 +195,34 @@ selection order/duplicates, immutable request capture, empty/invalid selections
 and the 1,000-page bound. Protected-document fixtures, large-file stress, native
 save dialogs, and other target platforms remain unqualified. No new dependency
 or license was introduced; existing PDFium distribution gates still apply.
+
+### Save selected pages candidate (macOS/Linux)
+
+The reader offers a warned page-sequence dialog followed by Save As. Explicit
+acknowledgement is required; invalid selections remain in the dialog with an
+inline error. A complete PDF is flushed to a private staged file beside the
+chosen destination, then POSIX link() atomically publishes the new filename
+without replacement. The destination is never opened for writing. Existing
+files and links are refused even if created concurrently. Library-directory
+paths and non-PDF names are refused. Windows Save As remains hidden until an
+equivalent no-replace implementation is qualified.
+
+A failure before publication leaves no destination; cleanup never deletes the
+chosen destination. A staging cleanup failure may leave a private temporary copy.
+This is not a defense against a hostile same-user process modifying the private
+staging directory or ancestor directories. Full power-loss durability is not
+claimed. Regression tests cover concurrent destination-file/link creation and
+failure before publication. The final candidate passes static analysis and 63 headless tests (4 skipped);
+independent focused rerun is recorded separately below when completed.
+
+Earlier headless tests passed real output reopen, both encrypted synthetic
+fixtures, and EN/AR warning/acknowledgement/Cancel at 390px. An attempted
+full-reader widget test stalled and was stopped; it was replaced by isolated
+dialog and native service tests, not counted as a pass. Native save picker/full
+reader acceptance remains pending. The owner's app was not interrupted.
+
+Independent final Save As review reran 7 focused tests with no skips: destination
+file/link races, failure before publication, invalid paths including NUL, native
+copy reopen and encrypted fixtures, and EN/AR dialog invalid-retention/cancel/
+accept. All passed. No remaining source blocker found; native picker/full reader
+acceptance and Linux platform qualification remain separate pending gates.

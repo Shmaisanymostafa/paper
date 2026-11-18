@@ -13,8 +13,10 @@ import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../services/document_share.dart';
 import '../services/document_print.dart';
+import '../services/page_copy.dart';
 import 'strings.dart';
 import 'page_navigation.dart';
+import 'page_copy_dialog.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -34,7 +36,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     with WidgetsBindingObserver {
   final _controller = PdfViewerController();
   final _documentShare = DocumentShare();
-  bool _sharing = false, _printing = false;
+  bool _sharing = false, _printing = false, _copyingPages = false;
   int _pinnedTools = 0;
   bool _pinsReady = false, _customizing = false;
   bool _encrypted = true, _allowsPrinting = false, _uniformPages = false;
@@ -150,6 +152,8 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   void _selectTool(String value) {
     switch (value) {
+      case 'copyPages':
+        unawaited(_copyPages());
       case 'customize':
         unawaited(_customizeToolbar());
       case 'note':
@@ -664,6 +668,41 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
+  Future<void> _copyPages() async {
+    if (_copyingPages || _pageCount == 0) return;
+    setState(() => _copyingPages = true);
+    try {
+      final text = await showDialog<String>(
+        context: context,
+        builder: (_) =>
+            PageCopyDialog(page: _page, pageCount: _pageCount, strings: s),
+      );
+      if (text == null || !mounted) return;
+      final pages = PageCopy.validateSelection(
+        text.split(',').map((v) => int.parse(v.trim())),
+        _pageCount,
+      );
+      final target = await fs.getSaveLocation(suggestedName: 'pages-copy.pdf');
+      if (target == null || !mounted) return;
+      final bytes = await PageCopy().create(
+        repository: widget.repository,
+        document: _document,
+        pages: pages,
+      );
+      if (!mounted) return;
+      await PageCopy.saveNewFile(
+        path: target.path,
+        bytes: bytes,
+        libraryRoot: widget.repository.root,
+      );
+      _message('copyPagesDone');
+    } catch (_) {
+      _message('copyPagesError');
+    } finally {
+      if (mounted) setState(() => _copyingPages = false);
+    }
+  }
+
   Future<void> _export() => _safely(() async {
     final text = AnnotationBundle(
       documentId: _document.id,
@@ -1062,6 +1101,12 @@ class _ReaderScreenState extends State<ReaderScreen>
                     value: tool.id,
                     enabled: _toolEnabled(tool),
                     child: _toolLabel(tool.icon, tool.label),
+                  ),
+                if (Platform.isMacOS || Platform.isLinux)
+                  PopupMenuItem(
+                    value: 'copyPages',
+                    enabled: ready && !_copyingPages && !_encrypted,
+                    child: _toolLabel(Icons.copy_all_outlined, 'copyPages'),
                   ),
                 const PopupMenuDivider(),
                 PopupMenuItem(

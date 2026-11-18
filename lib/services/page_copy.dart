@@ -1,4 +1,7 @@
 import 'dart:typed_data';
+import 'dart:io';
+
+import 'exclusive_pdf_save.dart';
 
 import 'package:pdfrx/pdfrx.dart';
 
@@ -25,6 +28,21 @@ class PageCopy {
       throw const LibraryFormatException('Select at least one page.');
     }
     return List.unmodifiable(result);
+  }
+
+  static Future<void> saveNewFile({
+    required String path,
+    required Uint8List bytes,
+    required Directory libraryRoot,
+  }) async {
+    if (bytes.length > maxBytes) {
+      throw const LibraryFormatException('Page copy exceeds size limits.');
+    }
+    await ExclusivePdfSave.save(
+      path: path,
+      bytes: bytes,
+      libraryRoot: libraryRoot,
+    );
   }
 
   Future<Uint8List> create({
