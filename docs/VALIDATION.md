@@ -290,3 +290,19 @@ animation remain manual acceptance; no running preview interaction occurred.
 
 Independent final source review and the same 11 focused tests also pass; no
 blocking issue identified within this tested scope.
+
+### Contextual local annotations
+
+The pinned pdfrx selection-menu extension now adds local Highlight and a page
+Note prefilled from selected text while preserving Copy/Select All. Both actions
+require selectable text with copy permission. Async text lookup is single-flight
+and validates captured selection/viewer generations, liveness and permission
+again before applying. Note prefill is bounded to 10,000 characters. Original
+PDF bytes remain untouched; these are sidecar annotations, not embedded edits.
+Author analysis is clean and 11 focused selection/note tests pass. Invalidations
+are simulated state/generation tests plus source wiring review, not native
+viewer journeys. Native context-menu presentation and selected-text geometry
+acceptance remain pending; the owner's preview has not been restarted.
+
+Independent final selection/note rerun also passed 11/11 with no source blocker;
+native selection gesture/menu acceptance remains a separate gate.

@@ -21,6 +21,7 @@ import 'page_copy_dialog.dart';
 import 'reader_focus_frame.dart';
 import 'note_editor_dialog.dart';
 import 'reader_panel_sheet.dart';
+import 'selection_actions.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -370,13 +371,14 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
-  Future<void> _addNote() async {
-    final page = _page;
+  Future<void> _addNote({int? selectedPage, String initialText = ''}) async {
+    final page = selectedPage ?? _page;
     final text = await showDialog<String>(
       context: context,
       builder: (_) => NoteEditorDialog(
         title: '${s['newNote']} · ${s['page']} $page',
         strings: s,
+        initialText: initialText,
       ),
     );
     if (text == null || !mounted) return;
@@ -450,12 +452,13 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
-  Future<void> _highlight() async {
-    if (_selection.isEmpty) {
+  Future<void> _highlight({List<PdfPageTextRange>? selectedRanges}) async {
+    final source = selectedRanges ?? _selection;
+    if (source.isEmpty) {
       _message('selectFirst');
       return;
     }
-    final selections = List<PdfPageTextRange>.of(_selection);
+    final selections = List<PdfPageTextRange>.of(source);
     await _safely(
       () => _update((doc) {
         final notes = <PaperNote>[];
@@ -487,6 +490,51 @@ class _ReaderScreenState extends State<ReaderScreen>
       }),
     );
     _selection = [];
+  }
+
+  final _selectionActions = SelectionActionSession();
+  Future<void> _annotateSelection(
+    PdfViewerContextMenuBuilderParams params, {
+    required bool highlight,
+  }) async {
+    final selectionVersion = _selectionVersion;
+    final reload = _reload;
+    try {
+      await _selectionActions.run<List<PdfPageTextRange>>(
+        isCurrent: () =>
+            mounted &&
+            selectionVersion == _selectionVersion &&
+            reload == _reload &&
+            params.textSelectionDelegate.isCopyAllowed &&
+            params.textSelectionDelegate.hasSelectedText,
+        read: params.textSelectionDelegate.getSelectedTextRanges,
+        apply: (ranges) async {
+          if (ranges.isEmpty) return;
+          params.dismissContextMenu();
+          if (highlight) {
+            await _highlight(selectedRanges: ranges);
+          } else {
+            final text = StringBuffer();
+            for (final range in ranges) {
+              if (text.length >= 10000) break;
+              if (text.isNotEmpty) text.write('\n');
+              final remaining = 10000 - text.length;
+              text.write(
+                range.text.length > remaining
+                    ? range.text.substring(0, remaining)
+                    : range.text,
+              );
+            }
+            await _addNote(
+              selectedPage: ranges.first.pageNumber,
+              initialText: text.toString(),
+            );
+          }
+        },
+      );
+    } catch (_) {
+      if (mounted) _message('selectionActionError');
+    }
   }
 
   void _paintNotes(Canvas canvas, Rect pageRect, PdfPage page) {
@@ -1245,6 +1293,26 @@ class _ReaderScreenState extends State<ReaderScreen>
                         passwordProvider: _password,
                         params: PdfViewerParams(
                           onViewerReady: _ready,
+                          customizeContextMenuItems: (params, items) =>
+                              appendSelectionActions(
+                                items,
+                                enabled:
+                                    params.isTextSelectionEnabled &&
+                                    params
+                                        .textSelectionDelegate
+                                        .isCopyAllowed &&
+                                    params
+                                        .textSelectionDelegate
+                                        .hasSelectedText,
+                                highlightLabel: s['selectionLocalHighlight'],
+                                noteLabel: s['selectionLocalNote'],
+                                onHighlight: () => unawaited(
+                                  _annotateSelection(params, highlight: true),
+                                ),
+                                onNote: () => unawaited(
+                                  _annotateSelection(params, highlight: false),
+                                ),
+                              ),
                           onPageChanged: _pageChanged,
                           backgroundColor: Theme.of(context)
                               .colorScheme
