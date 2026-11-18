@@ -5,6 +5,10 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'readerHidePanel': 'Hide side panel',
+    'readerShowPanel': 'Show side panel',
+    'readerFocusMode': 'Distraction-free reading',
+    'readerShowControls': 'Show reading controls (Esc)',
     'library': 'Your library',
     'libraryClearSearch': 'Clear search',
     'librarySearchDetail': 'Try a different title or clear your search.',
@@ -134,6 +138,10 @@ class PaperStrings {
     'librarySortRecent': 'المفتوحة مؤخراً',
     'librarySortTitle': 'العنوان',
     'librarySortNewest': 'المستوردة مؤخراً',
+    'readerHidePanel': 'إخفاء اللوحة الجانبية',
+    'readerShowPanel': 'إظهار اللوحة الجانبية',
+    'readerFocusMode': 'قراءة بدون تشتيت',
+    'readerShowControls': 'إظهار أدوات القراءة (Esc)',
     'library': 'مكتبتك',
     'tagline': 'مساحة هادئة لملفات PDF.',
     'open': 'فتح ملف PDF',

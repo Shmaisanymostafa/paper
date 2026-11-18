@@ -8,7 +8,7 @@ reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
 > **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 52 automated tests (4 skipped). macOS PDFium sample and reader-toolbar integration pass. Native runners and locked dependencies
+> static analysis and 72 automated tests (4 skipped, local PDFium configured). macOS PDFium sample and reader-toolbar integration pass. Native runners and locked dependencies
 > are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
 > Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
 
@@ -20,6 +20,8 @@ backend, advertising, analytics, remote font loading or app update service.
 - Selectable-text search with progress and highlighted results; no OCR claim.
 - Saved page bookmarks, page notes and text highlights.
 - Grouped icon-and-label reading tools with local favorite pins (three wide, one compact).
+- Remembered reader side panel and distraction-free mode with visible restore and Escape.
+- Library title search, clear search, result counts and recent/title/import sorting.
 - Explicit system print dialog on Apple/Android (whole document, uniform page sizes, unprotected PDFs up to 64 MiB; notes excluded).
 - Annotation JSON import/export, bound to the exact PDF fingerprint.
 - Password dialog for encrypted PDFs, without saving passwords.

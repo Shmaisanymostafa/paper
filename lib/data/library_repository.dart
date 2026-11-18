@@ -254,6 +254,12 @@ class LibraryRepository {
     ),
   );
 
+  Future<PaperLibrary> setReaderPanelVisible(bool visible) => _mutate(
+    (state) => state.copyWith(
+      settings: state.settings.copyWith(readerPanelVisible: visible),
+    ),
+  );
+
   Future<PaperLibrary> setPinnedTools(int mask) {
     if (mask < 0 || mask > 255) {
       throw const LibraryFormatException('Invalid pinned tools.');

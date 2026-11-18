@@ -17,6 +17,7 @@ import '../services/page_copy.dart';
 import 'strings.dart';
 import 'page_navigation.dart';
 import 'page_copy_dialog.dart';
+import 'reader_focus_frame.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -38,7 +39,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   final _documentShare = DocumentShare();
   bool _sharing = false, _printing = false, _copyingPages = false;
   int _pinnedTools = 0;
-  bool _pinsReady = false, _customizing = false;
+  bool _pinsReady = false, _customizing = false, _focusMode = false;
   bool _encrypted = true, _allowsPrinting = false, _uniformPages = false;
   double _printWidth = 0, _printHeight = 0;
   final _documentPrint = DocumentPrint();
@@ -51,6 +52,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   Timer? _pageTimer;
   int _page = 1, _pageCount = 0, _reload = 0, _tab = 0, _selectionVersion = 0;
   bool _panelVisible = true, _saving = false, _closing = false;
+  bool _panelChangedLocally = false;
   PaperStrings get s => widget.strings;
 
   @override
@@ -67,10 +69,23 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (mounted) {
       setState(() {
         _pinnedTools = state.settings.pinnedTools;
+        if (!_panelChangedLocally) {
+          _panelVisible = state.settings.readerPanelVisible;
+        }
         _pinsReady = true;
       });
     }
   });
+
+  void _setPanelVisible(bool visible) {
+    _panelChangedLocally = true;
+    setState(() => _panelVisible = visible);
+    unawaited(
+      _safely(() async {
+        await widget.repository.setReaderPanelVisible(visible);
+      }),
+    );
+  }
 
   List<_ReaderTool> get _tools => [
     const _ReaderTool('note', 'newNote', Icons.sticky_note_2_outlined, 1),
@@ -152,6 +167,8 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   void _selectTool(String value) {
     switch (value) {
+      case 'focus':
+        setState(() => _focusMode = true);
       case 'copyPages':
         unawaited(_copyPages());
       case 'customize':
@@ -796,7 +813,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   void _openPanel(int tab) {
     _tab = tab;
     if (MediaQuery.sizeOf(context).width >= 1000) {
-      setState(() => _panelVisible = true);
+      _setPanelVisible(true);
     } else {
       unawaited(
         showModalBottomSheet<void>(
@@ -1047,218 +1064,250 @@ class _ReaderScreenState extends State<ReaderScreen>
         if (didPop) return;
         await _closeReader();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            _document.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          actions: [
-            IconButton(
-              tooltip: s['search'],
-              onPressed: ready ? () => _openPanel(0) : null,
-              icon: const Icon(Icons.search),
-            ),
-            IconButton(
-              tooltip: book ? s['unbookmark'] : s['bookmark'],
-              onPressed: ready ? _bookmark : null,
-              icon: Icon(book ? Icons.bookmark : Icons.bookmark_outline),
-            ),
-            for (final tool
-                in _tools
-                    .where((tool) => (_pinnedTools & tool.bit) != 0)
-                    .take(wide ? 3 : 1))
-              IconButton(
-                tooltip: s[tool.label],
-                onPressed: _toolEnabled(tool)
-                    ? () => _selectTool(tool.id)
-                    : null,
-                icon: Icon(tool.icon),
-              ),
-            PopupMenuButton<String>(
-              tooltip: s['tools'],
-              enabled: ready,
-              onSelected: _selectTool,
-              itemBuilder: (_) => [
-                PopupMenuItem<String>(
-                  enabled: false,
-                  child: Text(s['readingTools']),
-                ),
-                for (final tool in _tools.where((tool) => tool.bit < 16))
-                  PopupMenuItem(
-                    value: tool.id,
-                    enabled: _toolEnabled(tool),
-                    child: _toolLabel(tool.icon, tool.label),
+      child: ReaderFocusFrame(
+        focused: _focusMode,
+        onRestore: () => setState(() => _focusMode = false),
+        restoreLabel: s['readerShowControls'],
+        child: Scaffold(
+          appBar: _focusMode
+              ? null
+              : AppBar(
+                  title: Text(
+                    _document.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                const PopupMenuDivider(),
-                PopupMenuItem<String>(
-                  enabled: false,
-                  child: Text(s['fileTools']),
-                ),
-                for (final tool in _tools.where((tool) => tool.bit >= 16))
-                  PopupMenuItem(
-                    value: tool.id,
-                    enabled: _toolEnabled(tool),
-                    child: _toolLabel(tool.icon, tool.label),
-                  ),
-                if (Platform.isMacOS || Platform.isLinux)
-                  PopupMenuItem(
-                    value: 'copyPages',
-                    enabled: ready && !_copyingPages && !_encrypted,
-                    child: _toolLabel(Icons.copy_all_outlined, 'copyPages'),
-                  ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'customize',
-                  enabled: _pinsReady && !_customizing,
-                  child: _toolLabel(
-                    Icons.push_pin_outlined,
-                    'toolbarCustomize',
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'info',
-                  child: _toolLabel(Icons.info_outline, 'limitations'),
-                ),
-              ],
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  if (wide && _panelVisible)
-                    SizedBox(width: 360, child: _panel()),
-                  if (wide && _panelVisible) const VerticalDivider(width: 1),
-                  Expanded(
-                    child: PdfViewer.file(
-                      widget.repository.documentFile(_document.id).path,
-                      key: ValueKey('${_document.id}-$_reload'),
-                      controller: _controller,
-                      initialPageNumber: _document.lastPage,
-                      passwordProvider: _password,
-                      params: PdfViewerParams(
-                        onViewerReady: _ready,
-                        onPageChanged: _pageChanged,
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                        linkHandlerParams: PdfLinkHandlerParams(
-                          onLinkTap: (link) => unawaited(_link(link)),
-                        ),
-                        textSelectionParams: PdfTextSelectionParams(
-                          onTextSelectionChange: (selection) async {
-                            final version = ++_selectionVersion;
-                            final ranges = await selection
-                                .getSelectedTextRanges();
-                            if (mounted && version == _selectionVersion) {
-                              _selection = ranges;
-                            }
-                          },
-                        ),
-                        pagePaintCallbacks: [
-                          if (_searcher != null)
-                            _searcher!.pageTextMatchPaintCallback,
-                          _paintNotes,
-                        ],
-                        errorBannerBuilder: (context, error, stack, ref) =>
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      s['loadFailed'],
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    FilledButton(
-                                      onPressed: () => setState(() {
-                                        _pageCount = 0;
-                                        _reload++;
-                                      }),
-                                      child: Text(s['retry']),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                  actions: [
+                    IconButton(
+                      tooltip: s['search'],
+                      onPressed: ready ? () => _openPanel(0) : null,
+                      icon: const Icon(Icons.search),
+                    ),
+                    IconButton(
+                      tooltip: book ? s['unbookmark'] : s['bookmark'],
+                      onPressed: ready ? _bookmark : null,
+                      icon: Icon(
+                        book ? Icons.bookmark : Icons.bookmark_outline,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!wide) navigation,
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: s['tools'],
-                          onPressed: ready
-                              ? () {
-                                  if (wide) {
-                                    setState(
-                                      () => _panelVisible = !_panelVisible,
-                                    );
-                                  } else {
-                                    _openPanel(3);
-                                  }
-                                }
-                              : null,
-                          icon: const Icon(Icons.view_sidebar_outlined),
+                    for (final tool
+                        in _tools
+                            .where((tool) => (_pinnedTools & tool.bit) != 0)
+                            .take(wide ? 3 : 1))
+                      IconButton(
+                        tooltip: s[tool.label],
+                        onPressed: _toolEnabled(tool)
+                            ? () => _selectTool(tool.id)
+                            : null,
+                        icon: Icon(tool.icon),
+                      ),
+                    PopupMenuButton<String>(
+                      tooltip: s['tools'],
+                      enabled: ready,
+                      onSelected: _selectTool,
+                      itemBuilder: (_) => [
+                        PopupMenuItem<String>(
+                          enabled: false,
+                          child: Text(s['readingTools']),
                         ),
-                        if (wide)
-                          Expanded(child: navigation)
-                        else
-                          const Spacer(),
-                        IconButton(
-                          tooltip: s['zoomOut'],
-                          onPressed: ready
-                              ? () => _controller.zoomDown()
-                              : null,
-                          icon: const Icon(Icons.zoom_out),
-                        ),
-                        IconButton(
-                          tooltip: s['zoomIn'],
-                          onPressed: ready ? () => _controller.zoomUp() : null,
-                          icon: const Icon(Icons.zoom_in),
-                        ),
-                        IconButton(
-                          tooltip: s['fit'],
-                          onPressed: ready
-                              ? () => _controller.goToPage(
-                                  pageNumber: _page,
-                                  anchor: PdfPageAnchor.all,
-                                )
-                              : null,
-                          icon: const Icon(Icons.fit_screen),
-                        ),
-                        if (wide)
-                          Text(
-                            _saving ? s['saving'] : s['saved'],
-                            style: Theme.of(context).textTheme.bodySmall,
+                        for (final tool in _tools.where(
+                          (tool) => tool.bit < 16,
+                        ))
+                          PopupMenuItem(
+                            value: tool.id,
+                            enabled: _toolEnabled(tool),
+                            child: _toolLabel(tool.icon, tool.label),
                           ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem<String>(
+                          enabled: false,
+                          child: Text(s['fileTools']),
+                        ),
+                        for (final tool in _tools.where(
+                          (tool) => tool.bit >= 16,
+                        ))
+                          PopupMenuItem(
+                            value: tool.id,
+                            enabled: _toolEnabled(tool),
+                            child: _toolLabel(tool.icon, tool.label),
+                          ),
+                        if (Platform.isMacOS || Platform.isLinux)
+                          PopupMenuItem(
+                            value: 'copyPages',
+                            enabled: ready && !_copyingPages && !_encrypted,
+                            child: _toolLabel(
+                              Icons.copy_all_outlined,
+                              'copyPages',
+                            ),
+                          ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'focus',
+                          child: _toolLabel(
+                            Icons.fullscreen,
+                            'readerFocusMode',
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'customize',
+                          enabled: _pinsReady && !_customizing,
+                          child: _toolLabel(
+                            Icons.push_pin_outlined,
+                            'toolbarCustomize',
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'info',
+                          child: _toolLabel(Icons.info_outline, 'limitations'),
+                        ),
                       ],
                     ),
                   ],
                 ),
+          body: Column(
+            children: [
+              if (_focusMode &&
+                  (_saving || _sharing || _printing || _copyingPages))
+                LinearProgressIndicator(semanticsLabel: s['saving']),
+              Expanded(
+                child: Row(
+                  children: [
+                    if (wide && _panelVisible && !_focusMode)
+                      SizedBox(width: 360, child: _panel()),
+                    if (wide && _panelVisible && !_focusMode)
+                      const VerticalDivider(width: 1),
+                    Expanded(
+                      child: PdfViewer.file(
+                        widget.repository.documentFile(_document.id).path,
+                        key: ValueKey('${_document.id}-$_reload'),
+                        controller: _controller,
+                        initialPageNumber: _document.lastPage,
+                        passwordProvider: _password,
+                        params: PdfViewerParams(
+                          onViewerReady: _ready,
+                          onPageChanged: _pageChanged,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          linkHandlerParams: PdfLinkHandlerParams(
+                            onLinkTap: (link) => unawaited(_link(link)),
+                          ),
+                          textSelectionParams: PdfTextSelectionParams(
+                            onTextSelectionChange: (selection) async {
+                              final version = ++_selectionVersion;
+                              final ranges = await selection
+                                  .getSelectedTextRanges();
+                              if (mounted && version == _selectionVersion) {
+                                _selection = ranges;
+                              }
+                            },
+                          ),
+                          pagePaintCallbacks: [
+                            if (_searcher != null)
+                              _searcher!.pageTextMatchPaintCallback,
+                            _paintNotes,
+                          ],
+                          errorBannerBuilder: (context, error, stack, ref) =>
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        s['loadFailed'],
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      FilledButton(
+                                        onPressed: () => setState(() {
+                                          _pageCount = 0;
+                                          _reload++;
+                                        }),
+                                        child: Text(s['retry']),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              if (!_focusMode)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!wide) navigation,
+                        Row(
+                          children: [
+                            IconButton(
+                              tooltip: wide
+                                  ? s[_panelVisible
+                                        ? 'readerHidePanel'
+                                        : 'readerShowPanel']
+                                  : s['notes'],
+                              onPressed: ready
+                                  ? () {
+                                      if (wide) {
+                                        _setPanelVisible(!_panelVisible);
+                                      } else {
+                                        _openPanel(3);
+                                      }
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.view_sidebar_outlined),
+                            ),
+                            if (wide)
+                              Expanded(child: navigation)
+                            else
+                              const Spacer(),
+                            IconButton(
+                              tooltip: s['zoomOut'],
+                              onPressed: ready
+                                  ? () => _controller.zoomDown()
+                                  : null,
+                              icon: const Icon(Icons.zoom_out),
+                            ),
+                            IconButton(
+                              tooltip: s['zoomIn'],
+                              onPressed: ready
+                                  ? () => _controller.zoomUp()
+                                  : null,
+                              icon: const Icon(Icons.zoom_in),
+                            ),
+                            IconButton(
+                              tooltip: s['fit'],
+                              onPressed: ready
+                                  ? () => _controller.goToPage(
+                                      pageNumber: _page,
+                                      anchor: PdfPageAnchor.all,
+                                    )
+                                  : null,
+                              icon: const Icon(Icons.fit_screen),
+                            ),
+                            if (wide)
+                              Text(
+                                _saving ? s['saving'] : s['saved'],
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -226,3 +226,18 @@ file/link races, failure before publication, invalid paths including NUL, native
 copy reopen and encrypted fixtures, and EN/AR dialog invalid-retention/cancel/
 accept. All passed. No remaining source blocker found; native picker/full reader
 acceptance and Linux platform qualification remain separate pending gates.
+
+
+### Reader focus and remembered side panel
+
+Combined library/focus candidate passes static analysis and 72 headless tests
+(4 preexisting skips, local PDFium configured). Focus restore is tested by visible
+button and Escape in LTR/RTL. Child text input and scroll survive entering/leaving
+focus; Escape on a modal dismisses only that modal. Panel preference defaults to
+visible for old libraries, persists across reopen and is preserved by theme/pin
+updates. A local action wins over a late preference load. Focus itself is deliberately
+session-only, not a permanent hidden-controls default. Saving/activity feedback
+remains visible and errors/modals are not hidden by the frame. No native full-reader
+focus acceptance or preview rebuild was performed in this batch.
+Independent focus/settings rerun: 8/8 passed without skips; no remaining source
+blocker identified. Real PDF-viewer focus geometry remains manual acceptance.

@@ -18,31 +18,38 @@ class PaperSettings {
     this.appearance = Appearance.system,
     this.language = 'en',
     this.pinnedTools = 0,
+    this.readerPanelVisible = true,
   });
   final Appearance appearance;
   final String language;
   // Eight stable reader tool bits. Unknown bits are rejected when loading.
   final int pinnedTools;
+  final bool readerPanelVisible;
   PaperSettings copyWith({
     Appearance? appearance,
     String? language,
     int? pinnedTools,
+    bool? readerPanelVisible,
   }) => PaperSettings(
     appearance: appearance ?? this.appearance,
     language: language ?? this.language,
     pinnedTools: pinnedTools ?? this.pinnedTools,
+    readerPanelVisible: readerPanelVisible ?? this.readerPanelVisible,
   );
   Map<String, Object?> toJson() => {
     'appearance': appearance.name,
     'language': language,
     'pinnedTools': pinnedTools,
+    'readerPanelVisible': readerPanelVisible,
   };
   factory PaperSettings.fromJson(Map<String, dynamic> json) {
     final appearance = json['appearance'];
     final language = json['language'];
     final pinnedTools = json['pinnedTools'] ?? 0;
+    final readerPanelVisible = json['readerPanelVisible'] ?? true;
     if (!Appearance.values.any((v) => v.name == appearance) ||
         !['en', 'ar'].contains(language) ||
+        readerPanelVisible is! bool ||
         pinnedTools is! int ||
         pinnedTools < 0 ||
         pinnedTools > 255) {
@@ -52,6 +59,7 @@ class PaperSettings {
       appearance: Appearance.values.firstWhere((v) => v.name == appearance),
       language: language as String,
       pinnedTools: pinnedTools,
+      readerPanelVisible: readerPanelVisible,
     );
   }
 }
