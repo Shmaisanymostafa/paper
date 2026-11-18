@@ -255,3 +255,13 @@ the owner's app; no preview restart is included in this source batch.
 
 Independent source review and focused note rerun passed 3/3; no blocking issue
 identified within this scope. Native reader-panel acceptance remains pending.
+
+### Mobile reader tools keyboard layout
+
+The mobile tools sheet now stays above the keyboard and scrolls its complete
+panel when short viewport space cannot fit fixed search controls. Static analysis
+passes. Author and independent runs each pass 4 modal-route widget cases covering
+LTR/RTL, portrait/landscape, 2x text, keyboard show/hide, query retention and
+route dismissal. Fixtures reproduce the fixed-header structure, not a full native
+PDF viewer; physical-device keyboard acceptance remains pending. No preview
+restart is part of this source batch.

@@ -20,6 +20,7 @@ import 'page_navigation.dart';
 import 'page_copy_dialog.dart';
 import 'reader_focus_frame.dart';
 import 'note_editor_dialog.dart';
+import 'reader_panel_sheet.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -851,10 +852,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,
-          builder: (_) => SizedBox(
-            height: MediaQuery.sizeOf(context).height * .8,
-            child: _panel(),
-          ),
+          builder: (_) => ReaderPanelSheet(child: _panel()),
         ),
       );
     }
