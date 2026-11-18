@@ -49,7 +49,11 @@ class PageCopy {
     required LibraryRepository repository,
     required PaperDocument document,
     required Iterable<int> pages,
+    int clockwiseQuarterTurns = 0,
   }) async {
+    if (clockwiseQuarterTurns < 0 || clockwiseQuarterTurns > 3) {
+      throw const LibraryFormatException('Invalid page rotation.');
+    }
     // Snapshot the request before asynchronous work; cap lazy/unbounded inputs.
     final selection = validateSelection(pages, 0x7fffffff);
     if (document.byteLength > maxBytes) {
@@ -71,7 +75,12 @@ class PageCopy {
         sourceName: 'memory:page-copy',
       );
       try {
-        output.pages = [for (final page in selection) source.pages[page - 1]];
+        output.pages = [
+          for (final page in selection)
+            source.pages[page - 1].rotatedBy(
+              PdfPageRotation.values[clockwiseQuarterTurns],
+            ),
+        ];
         final bytes = await output.encodePdf();
         if (bytes.isEmpty || bytes.length > maxBytes) {
           throw const LibraryFormatException('Page copy exceeds size limits.');

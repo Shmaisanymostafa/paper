@@ -334,3 +334,20 @@ explicit results/layout, not a native picker zero-call integration test. Source
 inspection verifies the early return; mobile picker acceptance remains pending.
 
 Independent final source review and both focused dialog tests passed (2/2).
+
+### Original-preserving rotation foundation
+
+Page-copy service accepts an optional 0–3 clockwise-quarter-turn rotation using
+existing pinned pdfrx page wrappers; default zero preserves existing behavior.
+This is not yet exposed in the Save As UI. The existing protected-PDF refusal,
+new-file-only publication and original-integrity checks remain intact. Author
+native headless tests pass 4/4 across rotation/page-copy/protected fixtures and
+selection validation, with clean analysis. Rotation tests cover all four angles,
+duplicates, dimensions, reopening/renderability, 90+270 composition, invalid
+angles and unchanged source bytes/library metadata. PDFium can change extracted
+reading order after rotation; rotated tests assert all whitespace-separated
+text tokens and counts remain, not identical extraction order. General visual
+fidelity and native Save dialog acceptance are not established by these tests.
+
+Independent final native/unit rerun also passed 4/4; source review found no
+blocking issue in this unexposed rotation foundation.
