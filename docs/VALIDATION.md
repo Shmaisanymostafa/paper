@@ -276,3 +276,17 @@ Independent integrated checks passed 26/26 without skips (appearance, library
 listing, mobile panel, notes, toolbar settings and app layout), with clean static
 analysis. A test-only braces lint was fixed before that rerun. No native preview
 restart or physical-device theme acceptance is included.
+
+### Reader Find shortcuts
+
+Ctrl+F and Command+F invoke document search, reveal controls when needed, and
+request search-field focus. Shortcut handlers are scoped below modal routes;
+repeated mobile activation is guarded by a synchronous single-route latch with
+finally-based dismissal/error recovery. Author static analysis is clean and 11
+focused shortcut/focus/mobile tests pass. These cover modifier dispatch, modal
+isolation, unchanged field input, latch repetition/reopening, and prior focus
+and keyboard layouts. Native PDF search-field focus and real keyboard dismissal
+animation remain manual acceptance; no running preview interaction occurred.
+
+Independent final source review and the same 11 focused tests also pass; no
+blocking issue identified within this tested scope.

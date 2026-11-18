@@ -9,18 +9,25 @@ class ReaderFocusFrame extends StatelessWidget {
     required this.onRestore,
     required this.restoreLabel,
     required this.child,
+    this.onSearch,
     super.key,
   });
   final bool focused;
   final VoidCallback onRestore;
   final String restoreLabel;
   final Widget child;
+  final VoidCallback? onSearch;
 
   @override
   Widget build(BuildContext context) => CallbackShortcuts(
-    bindings: focused
-        ? {const SingleActivator(LogicalKeyboardKey.escape): onRestore}
-        : {},
+    bindings: {
+      if (focused) const SingleActivator(LogicalKeyboardKey.escape): onRestore,
+      if (onSearch != null) ...{
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            onSearch!,
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true): onSearch!,
+      },
+    },
     child: Focus(
       autofocus: true,
       child: Stack(

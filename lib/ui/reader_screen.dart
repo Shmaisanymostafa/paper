@@ -47,6 +47,8 @@ class _ReaderScreenState extends State<ReaderScreen>
   double _printWidth = 0, _printHeight = 0;
   final _documentPrint = DocumentPrint();
   final _searchField = TextEditingController();
+  final _searchFocus = FocusNode();
+  final _mobilePanel = ReaderPanelSession();
   final _panelChanges = ValueNotifier<int>(0);
   late PaperDocument _document;
   PaperNote? _removedNote;
@@ -229,6 +231,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     _searcher?.removeListener(_refreshSearch);
     _searcher?.dispose();
     _searchField.dispose();
+    _searchFocus.dispose();
     _panelChanges.dispose();
     super.dispose();
   }
@@ -843,16 +846,26 @@ class _ReaderScreenState extends State<ReaderScreen>
     _message('importComplete');
   }, error: 'annotationsError');
 
+  void _findText() {
+    if (_focusMode) setState(() => _focusMode = false);
+    _openPanel(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
+
   void _openPanel(int tab) {
     _tab = tab;
     if (MediaQuery.sizeOf(context).width >= 1000) {
       _setPanelVisible(true);
     } else {
       unawaited(
-        showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => ReaderPanelSheet(child: _panel()),
+        _mobilePanel.show(
+          () => showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => ReaderPanelSheet(child: _panel()),
+          ),
         ),
       );
     }
@@ -1028,6 +1041,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         padding: const EdgeInsets.all(16),
         child: TextField(
           controller: _searchField,
+          focusNode: _searchFocus,
           decoration: InputDecoration(
             labelText: s['searchHint'],
             prefixIcon: const Icon(Icons.search),
@@ -1113,6 +1127,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         focused: _focusMode,
         onRestore: () => setState(() => _focusMode = false),
         restoreLabel: s['readerShowControls'],
+        onSearch: ready ? _findText : null,
         child: Scaffold(
           appBar: _focusMode
               ? null
@@ -1124,8 +1139,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                   ),
                   actions: [
                     IconButton(
-                      tooltip: s['search'],
-                      onPressed: ready ? () => _openPanel(0) : null,
+                      tooltip: '${s['search']} (Ctrl+F / ⌘F)',
+                      onPressed: ready ? _findText : null,
                       icon: const Icon(Icons.search),
                     ),
                     IconButton(

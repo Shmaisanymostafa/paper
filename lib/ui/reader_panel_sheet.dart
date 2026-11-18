@@ -42,3 +42,19 @@ class ReaderPanelSheet extends StatelessWidget {
     );
   }
 }
+
+/// Prevents repeated toolbar/shortcut activation from creating concurrent
+/// routes that would share the reader's search controller and focus node.
+class ReaderPanelSession {
+  bool _open = false;
+
+  Future<void> show(Future<void> Function() present) async {
+    if (_open) return;
+    _open = true;
+    try {
+      await present();
+    } finally {
+      _open = false;
+    }
+  }
+}
