@@ -11,6 +11,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../data/library_repository.dart';
 import '../domain/library.dart';
+import '../domain/note_changes.dart';
 import '../services/document_share.dart';
 import '../services/document_print.dart';
 import '../services/page_copy.dart';
@@ -18,6 +19,7 @@ import 'strings.dart';
 import 'page_navigation.dart';
 import 'page_copy_dialog.dart';
 import 'reader_focus_frame.dart';
+import 'note_editor_dialog.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -46,6 +48,9 @@ class _ReaderScreenState extends State<ReaderScreen>
   final _searchField = TextEditingController();
   final _panelChanges = ValueNotifier<int>(0);
   late PaperDocument _document;
+  PaperNote? _removedNote;
+  int _removedNoteIndex = 0;
+  bool _undoingNote = false;
   PdfTextSearchSession? _searcher;
   List<PdfOutlineNode> _outline = [];
   List<PdfPageTextRange> _selection = [];
@@ -362,41 +367,15 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Future<void> _addNote() async {
-    final field = TextEditingController();
     final page = _page;
     final text = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${s['newNote']} · ${s['page']} $page'),
-        content: SizedBox(
-          width: 440,
-          child: TextField(
-            controller: field,
-            autofocus: true,
-            maxLines: 6,
-            minLines: 3,
-            maxLength: 10000,
-            decoration: InputDecoration(labelText: s['note']),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(s['cancel']),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (field.text.trim().isNotEmpty) {
-                Navigator.pop(context, field.text.trim());
-              }
-            },
-            child: Text(s['save']),
-          ),
-        ],
+      builder: (_) => NoteEditorDialog(
+        title: '${s['newNote']} · ${s['page']} $page',
+        strings: s,
       ),
     );
-    field.dispose();
-    if (text == null) return;
+    if (text == null || !mounted) return;
     await _safely(
       () => _update(
         (doc) => doc.copyWith(
@@ -412,6 +391,59 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _editNote(PaperNote note) async {
+    final text = await showDialog<String>(
+      context: context,
+      builder: (_) => NoteEditorDialog(
+        title: '${s['readerEditNote']} · ${s['page']} ${note.page}',
+        strings: s,
+        initialText: note.text,
+        allowEmpty: note.boxes.isNotEmpty,
+      ),
+    );
+    if (text == null || !mounted || text == note.text) return;
+    await _safely(
+      () => _update((doc) => NoteChanges.edit(doc, note, text)),
+      error: 'readerNoteConflict',
+    );
+  }
+
+  Future<void> _removeNote(PaperNote note) async {
+    final index = _document.notes.indexWhere((n) => n.id == note.id);
+    try {
+      await _update((doc) => NoteChanges.remove(doc, note));
+      if (!mounted) return;
+      setState(() {
+        _removedNote = note;
+        _removedNoteIndex = index;
+      });
+      _panelChanges.value++;
+    } catch (_) {
+      _message('readerNoteConflict');
+    }
+  }
+
+  Future<void> _undoNoteRemoval() async {
+    final note = _removedNote;
+    final index = _removedNoteIndex;
+    if (note == null || _undoingNote) return;
+    setState(() => _undoingNote = true);
+    _panelChanges.value++;
+    try {
+      await _update((doc) => NoteChanges.restore(doc, note, index));
+      if (mounted && _removedNote?.id == note.id) {
+        setState(() => _removedNote = null);
+      }
+    } catch (_) {
+      _message('readerNoteConflict');
+    } finally {
+      if (mounted) {
+        setState(() => _undoingNote = false);
+        _panelChanges.value++;
+      }
+    }
   }
 
   Future<void> _highlight() async {
@@ -929,6 +961,19 @@ class _ReaderScreenState extends State<ReaderScreen>
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
+                    if (_removedNote != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(child: Text(s['readerNoteRemoved'])),
+                            TextButton(
+                              onPressed: _undoingNote ? null : _undoNoteRemoval,
+                              child: Text(s['readerUndo']),
+                            ),
+                          ],
+                        ),
+                      ),
                     Expanded(
                       child: _document.notes.isEmpty
                           ? _empty('noNotes')
@@ -951,18 +996,20 @@ class _ReaderScreenState extends State<ReaderScreen>
                                     onTap: () => _controller.goToPage(
                                       pageNumber: note.page,
                                     ),
-                                    trailing: IconButton(
-                                      tooltip: s['delete'],
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () => _safely(
-                                        () => _update(
-                                          (d) => d.copyWith(
-                                            notes: d.notes
-                                                .where((n) => n.id != note.id)
-                                                .toList(),
-                                          ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: s['readerEditNote'],
+                                          icon: const Icon(Icons.edit_outlined),
+                                          onPressed: () => _editNote(note),
                                         ),
-                                      ),
+                                        IconButton(
+                                          tooltip: s['delete'],
+                                          icon: const Icon(Icons.close),
+                                          onPressed: () => _removeNote(note),
+                                        ),
+                                      ],
                                     ),
                                   ),
                               ],

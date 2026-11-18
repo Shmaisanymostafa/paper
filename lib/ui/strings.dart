@@ -5,6 +5,10 @@ class PaperStrings {
   String get appName => isArabic ? 'كهف للملفات' : 'Cave Paper';
   String operator [](String key) => (isArabic ? ar : en)[key] ?? en[key] ?? key;
   static const en = <String, String>{
+    'readerEditNote': 'Edit note',
+    'readerNoteRemoved': 'Note removed from this device.',
+    'readerUndo': 'Undo',
+    'readerNoteConflict': 'Could not change this note. It may have changed elsewhere; reopen it and try again.',
     'readerHidePanel': 'Hide side panel',
     'readerShowPanel': 'Show side panel',
     'readerFocusMode': 'Distraction-free reading',
@@ -138,6 +142,11 @@ class PaperStrings {
     'librarySortRecent': 'المفتوحة مؤخراً',
     'librarySortTitle': 'العنوان',
     'librarySortNewest': 'المستوردة مؤخراً',
+    'readerEditNote': 'تعديل الملاحظة',
+    'readerNoteRemoved': 'أُزيلت الملاحظة من هذا الجهاز.',
+    'readerUndo': 'تراجع',
+    'readerNoteConflict':
+        'تعذر تغيير الملاحظة. ربما تغيرت؛ أعد فتحها وحاول مجدداً.',
     'readerHidePanel': 'إخفاء اللوحة الجانبية',
     'readerShowPanel': 'إظهار اللوحة الجانبية',
     'readerFocusMode': 'قراءة بدون تشتيت',

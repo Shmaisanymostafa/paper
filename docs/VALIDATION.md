@@ -241,3 +241,17 @@ remains visible and errors/modals are not hidden by the frame. No native full-re
 focus acceptance or preview rebuild was performed in this batch.
 Independent focus/settings rerun: 8/8 passed without skips; no remaining source
 blocker identified. Real PDF-viewer focus geometry remains manual acceptance.
+
+### Local note editing and Undo candidate
+
+Static analysis passes and the combined headless suite passes 75 tests (4 skips,
+local PDFium configured). The note editor is tested in English/Arabic for cancel,
+reopen, save and empty validation. Repository tests exercise edit/remove/restore,
+conflict rejection, duplicate-ID refusal, highlight geometry retention, persisted
+metadata and unchanged original PDF bytes. Undo is a last-removal action inside
+the notes panel so mobile sheets do not obscure it; it is session-only and not
+permanent history. Native notes-panel interaction/Undo has not been exercised in
+the owner's app; no preview restart is included in this source batch.
+
+Independent source review and focused note rerun passed 3/3; no blocking issue
+identified within this scope. Native reader-panel acceptance remains pending.
