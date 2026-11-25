@@ -1,0 +1,7 @@
+# Copy to android/key.properties locally; never commit keys or real passwords.
+# storeFile is absolute or relative to the android/ directory.
+# Use forward slashes in paths, including on Windows.
+storeFile=/absolute/path/to/release-keystore.jks
+storePassword=REPLACE_LOCALLY
+keyAlias=upload
+keyPassword=REPLACE_LOCALLY

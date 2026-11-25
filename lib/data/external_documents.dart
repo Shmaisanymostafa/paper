@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'package:flutter/services.dart';
 
 /// Platform open events are queued until the UI is ready. No OS default changes.

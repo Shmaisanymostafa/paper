@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Synthetic packaging regression tests. No OS registration or image rendering."""
 import struct
 import unittest

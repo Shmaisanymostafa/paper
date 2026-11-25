@@ -56,6 +56,19 @@ out-of-range pages, oversized payloads and conflicting IDs, and merges identical
 retries without duplicates. No annotation is embedded, flattened or written into
 the source PDF. Highlights do not hide or redact underlying text.
 
+On macOS/Linux, annotation JSON and page-copy PDFs use the same exclusive
+publisher: it resolves the destination parent, rejects library paths, fully
+writes a private staged file, then uses POSIX `link()` to publish a new name
+without replacing files, symlinks or hardlinks. The destination is never opened
+for writing. Windows/mobile annotation export uses an explicit clipboard dialog
+until no-replace native publication is qualified there. Private staging and
+ancestor directories are not a boundary against a hostile same-user process;
+full power-loss durability is not claimed.
+
+Sharing bounds and verifies the completed staged PDF against its fingerprint
+before OS handoff. Preparation failures remove that operation's staging directory;
+already handed-off files remain for OS consumers.
+
 ## Responsive UI
 
 Desktop has a library rail and a reader tool panel. Narrow screens use a drawer
@@ -66,18 +79,19 @@ substitution may differ from the authoring app and requires document testing.
 
 ## Extension points
 
-Form writing, standard embedded annotations and Save a Copy require a separate
+Form writing and standard embedded annotations require a separate
 document-editing adapter and genuine round-trip tests. Do not implement those by
 painting a Flutter overlay and calling the PDF saved. OCR, signed-PDF handling,
-content redaction, operating-system file associations and printing are separate
-milestones. No account/backend is needed to add them.
+content redaction and digital signatures remain separate milestones. Native
+file-opening adapters and limited system printing exist in source and require
+platform acceptance. No account/backend is needed for these capabilities.
 
 ## Page-copy editing foundation
 
-`PageCopy` is a non-UI foundation for selecting/reordering/duplicating pages into
+`PageCopy` selects/reorders/duplicates pages into
 new PDF bytes using the existing pinned pdfrx/PDFium dependency. It never writes
-the source or library index. A future Save As workflow must ask for a distinct
-output destination and disclose that document-level forms, signatures, outlines
+the source or library index. The reader's macOS/Linux Save As workflow requires a new
+output destination and discloses that document-level forms, signatures, outlines
 and app-local sidecar annotations are not preserved by this operation. This is
 not text editing, form editing, redaction, OCR or signature support.
 

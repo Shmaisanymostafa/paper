@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "technology.cave" "\0"
+            VALUE "CompanyName", "Cave" "\0"
             VALUE "FileDescription", "Cave Paper" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "cave_paper" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 technology.cave. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Cave. Licensed under the MIT License." "\0"
             VALUE "OriginalFilename", "cave_paper.exe" "\0"
-            VALUE "ProductName", "cave_paper" "\0"
+            VALUE "ProductName", "Cave Paper" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'package:material_ui/material_ui.dart';
 
 /// Extends, rather than replaces, the viewer's permission-aware Copy/Select All

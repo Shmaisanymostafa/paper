@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'dart:io';
 
 /// Refuse Dart HTTP requests, including accidental remote-font requests from

@@ -156,6 +156,63 @@ void main() {
     expect(calls, 2);
   });
 
+  for (final change in ['replace', 'grow', 'remove']) {
+    test('source $change during preparation cancels and cleans staged copy', () async {
+      var calls = 0;
+      var alterSource = true;
+      final source = repo.documentFile(doc.id);
+      final exporter = DocumentShare(
+        temporaryDirectory: () async {
+          if (alterSource) {
+            switch (change) {
+              case 'replace':
+                await source.writeAsBytes(List.filled(pdf.length, 65));
+              case 'grow':
+                await source.writeAsBytes([...pdf, ...List.filled(100000, 65)]);
+              case 'remove':
+                await source.delete();
+            }
+          }
+          return temp;
+        },
+        share: (params) async {
+          calls++;
+          expect(await params.files!.first.readAsBytes(), pdf);
+          return const ShareResult('', ShareResultStatus.dismissed);
+        },
+      );
+      await expectLater(
+        exporter.share(
+          repository: repo,
+          document: doc,
+          origin: origin,
+          includeAnnotations: true,
+        ),
+        throwsA(
+          anyOf(isA<LibraryFormatException>(), isA<FileSystemException>()),
+        ),
+      );
+      expect(calls, 0);
+      expect(
+        await temp
+            .list()
+            .where((f) => f.path.contains('cave-paper-share-'))
+            .toList(),
+        isEmpty,
+      );
+      // Failed preparation releases the busy guard, allowing a repaired retry.
+      alterSource = false;
+      await source.writeAsBytes(pdf);
+      await exporter.share(
+        repository: repo,
+        document: doc,
+        origin: origin,
+        includeAnnotations: false,
+      );
+      expect(calls, 1);
+    });
+  }
+
   test('failure releases busy guard for another attempt', () async {
     var calls = 0;
     final exporter = DocumentShare(

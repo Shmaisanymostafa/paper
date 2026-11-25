@@ -1,5 +1,9 @@
 # Validation status - 2026-11-12
 
+The [2026-11-18 release-readiness review](RELEASE_READINESS.md) records the most
+recent aggregate checks and native build results. The sections below preserve
+earlier scoped evidence; they do not override that review or qualify other targets.
+
 ## Verified on the Mac
 
 - Restored source commit 3de7bf6 from the owner-downloaded ZIP and Git bundle.

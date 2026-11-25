@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Source regression checks, not an Inno compiler or Windows acceptance test."""
 from pathlib import Path
 import re

@@ -1,5 +1,28 @@
 # Dependency and licensing review
 
+## Current release review — 2026-11-18
+
+`flutter pub get --enforce-lockfile` resolved the committed graph with Flutter
+3.47.6 / Dart 3.13.5 without changing the lockfile. The inventory check verifies
+109 actual package license texts, their raw SHA-256 values and the lockfile hash.
+No dependency version was changed in this review. The raw macOS arm64 PDFium
+hook output matches the recorded `a45c4464…` binary hash; Flutter's packaged
+copy can differ after Mach-O wrapping/signing and must be qualified separately.
+
+The Windows/Linux printing plugin's additional parser download remains a
+release blocker. The pinned pdfium_dart 0.4.1 hook also downloads its Chromium
+8125 target archive without enforcing an archive hash and extracts only the
+library. Android and other targets therefore need independent exact-artifact
+integrity, advisory and notice checks; the Apple notice reconciliation below
+does not qualify them. A successful build alone does not close this gate.
+
+Use `python3 tool/license_inventory.py --check` for non-mutating verification.
+Regenerate notices only after an intentional dependency update and review the
+diff. See [current build/test evidence](RELEASE_READINESS.md) and the
+[third-party notice index](../THIRD_PARTY_NOTICES.md).
+
+## Initial component review
+
 Reviewed 2026-11-12 from primary package/upstream sources. This is an engineering
 inventory, not a claim that every resolved binary has been qualified.
 

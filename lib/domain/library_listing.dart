@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'library.dart';
 
 enum LibrarySort {

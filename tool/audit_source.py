@@ -1,11 +1,30 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Dependency-free source hygiene checks. NOT a Dart analyzer or Flutter test."""
 from pathlib import Path
 import hashlib
 import json
+import os
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
+
+GENERATED_DIRECTORIES = {'.git', '.dart_tool', 'build', 'coverage', 'Pods',
+                         'ephemeral', 'node_modules', '__pycache__', '.vscode',
+                         '.idea', 'platforms-local', 'verification'}
+
+
+def source_files(root: Path):
+    """Visit source without descending into generated or local dependency trees."""
+    for directory, children, names in os.walk(root):
+        children[:] = [name for name in children if name not in GENERATED_DIRECTORIES]
+        for name in names:
+            file = Path(directory) / name
+            if file.suffix in {'.dart', '.py', '.md', '.yaml', '.yml', '.json',
+                               '.swift', '.kt', '.cpp', '.cc', '.h', '.xml', '.kts'}:
+                yield file
 
 
 def delimiter_errors(text: str) -> list[str]:
@@ -65,19 +84,20 @@ def main() -> None:
     errors = []
     files = sorted(ROOT.glob('lib/**/*.dart')) + sorted(ROOT.glob('test/**/*.dart')) + sorted(ROOT.glob('integration_test/**/*.dart'))
     for file in files:
-        errors += [f'{file.relative_to(ROOT)}: {e}' for e in delimiter_errors(file.read_text())]
-    lib = '\n'.join(file.read_text() for file in ROOT.glob('lib/**/*.dart'))
+        errors += [f'{file.relative_to(ROOT)}: {e}' for e in delimiter_errors(file.read_text(encoding='utf-8'))]
+    lib = '\n'.join(file.read_text(encoding='utf-8') for file in ROOT.glob('lib/**/*.dart'))
     for pattern in [r'PdfViewer\.uri\(', r'PdfDocument\.openUri\(', r'launchUrl\(', r'Firebase', r'GoogleFonts\.']:
         if re.search(pattern, lib): errors.append('Unexpected runtime dependency: ' + pattern)
-    for file in ROOT.rglob('*'):
-        if not file.is_file() or '.git' in file.parts or file.suffix not in {'.dart', '.py', '.md', '.yaml'}:
-            continue
-        if re.search(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|AIza[0-9A-Za-z_-]{30,}', file.read_text()):
+    for file in source_files(ROOT):
+        if re.search(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|AIza[0-9A-Za-z_-]{30,}', file.read_text(encoding='utf-8')):
             errors.append('Possible secret: ' + str(file.relative_to(ROOT)))
     required = ['assets/sample.pdf', 'LICENSE', 'docs/DEPENDENCIES.md', 'assets/notices/pdfrx-LICENSE.txt']
     errors += [f'Missing {name}' for name in required if not (ROOT / name).is_file()]
     report = {'kind': 'source-hygiene-not-flutter-validation', 'dartFiles': len(files),
-              'errors': errors, 'sampleSha256': hashlib.sha256((ROOT / 'assets/sample.pdf').read_bytes()).hexdigest()}
+              'errors': errors, 'sampleSha256': hashlib.sha256((ROOT / 'assets/sample.pdf').read_bytes()).hexdigest(),
+              'fonts': [{'file': file.relative_to(ROOT).as_posix(),
+                         'sha256': hashlib.sha256(file.read_bytes()).hexdigest()}
+                        for file in sorted(ROOT.glob('assets/fonts/*.ttf'))]}
     print(json.dumps(report, indent=2))
     if errors: raise SystemExit(1)
 

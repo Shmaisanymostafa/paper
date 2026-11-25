@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Private security report
+    url: https://github.com/Shmaisanymostafa/paper/blob/main/SECURITY.md
+    about: Follow the private reporting instructions; do not disclose vulnerabilities in public issues.

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 class PaperStrings {
   const PaperStrings(this.language);
   final String language;
@@ -136,10 +139,12 @@ class PaperStrings {
     'shareError': 'Could not open sharing. Check that the imported PDF is still available and try again.',
     'export': 'Export annotations',
     'importNotes': 'Import annotations',
-    'annotationsDetail': 'Notes and highlights are stored separately. They are not embedded in the PDF. Share the PDF and annotation JSON together.',
+    'annotationsDetail': 'Notes and highlights are stored separately. They are not embedded in the PDF. JSON is unencrypted and may include text from password-protected documents. Share the PDF and annotation JSON together.',
     'copy': 'Copy to clipboard',
     'copied': 'Copied. Clipboard content may be visible to other apps.',
     'exportComplete': 'Annotations exported',
+    'exportNewFile': 'Save new JSON',
+    'exportError': 'Could not export annotations. Choose a new .json filename outside the app data folder. Existing files are never replaced.',
     'importComplete': 'Annotations imported',
     'password': 'This PDF is password-protected',
     'passwordLabel': 'PDF password',
@@ -300,10 +305,12 @@ class PaperStrings {
         'تعذّر فتح المشاركة. تأكد من وجود نسخة PDF المستوردة وحاول مجدداً.',
     'export': 'تصدير الملاحظات',
     'importNotes': 'استيراد الملاحظات',
-    'annotationsDetail': 'تُحفظ الملاحظات والتظليل بشكل منفصل، ولا تُدمج داخل PDF. شارك المستند وملف JSON معاً.',
+    'annotationsDetail': 'تُحفظ الملاحظات والتظليل بشكل منفصل، ولا تُدمج داخل PDF. ملف JSON غير مشفّر وقد يتضمن نصاً من مستندات محمية بكلمة مرور. شارك المستند وملف JSON معاً.',
     'copy': 'نسخ إلى الحافظة',
     'copied': 'تم النسخ. قد تتمكن تطبيقات أخرى من قراءة الحافظة.',
     'exportComplete': 'تم تصدير الملاحظات',
+    'exportNewFile': 'حفظ ملف JSON جديد',
+    'exportError': 'تعذّر تصدير الملاحظات. اختر اسم ملف جديداً بامتداد .json خارج مجلد بيانات التطبيق. لا تُستبدل الملفات الموجودة.',
     'importComplete': 'تم استيراد الملاحظات',
     'password': 'هذا الملف محمي بكلمة مرور',
     'passwordLabel': 'كلمة مرور PDF',

@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.ico binary
+*.icns binary
+*.pdf binary
+*.ttf binary
+# Preserve exact upstream notice bytes used by the provenance inventory.
+assets/notices/native-macos-arm64/** -text

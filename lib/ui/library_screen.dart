@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'dart:async';
 import 'dart:io';
 
@@ -48,12 +51,40 @@ class _LibraryScreenState extends State<LibraryScreen> {
   void initState() {
     super.initState();
     unawaited(_load());
-    unawaited(
-      _external.start((path) {
+    unawaited(_startExternal());
+  }
+
+  Future<void> _startExternal() async {
+    try {
+      await _external.start((path) {
+        // The native ready response can arrive after this screen is gone.
+        // Release its security-scoped access rather than orphaning the grant.
+        if (!mounted) {
+          unawaited(_releaseExternal(path));
+          return;
+        }
         _pendingExternal.add(path);
         unawaited(_drainExternal());
-      }),
-    );
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(s['importError'])));
+      }
+    }
+  }
+
+  Future<void> _releaseExternal(String path) async {
+    try {
+      await _external.release(path);
+    } catch (_) {
+      // A native release failure must not become an uncaught async exception
+      // or prevent the remaining queued access grants from being released.
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(s['importError'])));
+      }
+    }
   }
 
   @override
@@ -61,7 +92,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _searchController.dispose();
     _external.dispose();
     for (final path in _pendingExternal) {
-      unawaited(_external.release(path));
+      unawaited(_releaseExternal(path));
     }
     super.dispose();
   }
@@ -89,12 +120,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
             name: p.basename(path),
             bytes: file.openRead(),
           );
-          await _external.release(path);
+          await _releaseExternal(path);
           released = true;
           await _load();
           if (mounted) await _read(doc);
         } catch (_) {
-          if (!released) await _external.release(path);
+          if (!released) await _releaseExternal(path);
           if (mounted) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(s['importError'])));
@@ -124,7 +155,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     Future<void> Function() action, {
     String error = 'storageError',
   }) async {
-    if (_busy) return;
+    if (!mounted || _busy) return;
     setState(() => _busy = true);
     try {
       await action();
@@ -167,7 +198,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         ],
       );
-      if (file == null) return;
+      if (file == null || !mounted) return;
       doc = await widget.repository.importPdf(
         name: file.name,
         bytes: file.openRead(),
@@ -221,7 +252,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ),
     );
     controller.dispose();
-    if (name != null) {
+    if (name != null && mounted) {
       await _run(() async {
         await widget.repository.updateDocument(
           doc.id,
@@ -250,7 +281,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       await _run(() async {
         await widget.repository.removeDocument(doc.id);
         await _load();

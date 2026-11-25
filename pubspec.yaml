@@ -1,5 +1,8 @@
 name: cave_paper
 description: An open-source, offline PDF reading workspace for desktop and mobile.
+homepage: https://www.cave.technology
+repository: https://github.com/Shmaisanymostafa/paper
+issue_tracker: https://github.com/Shmaisanymostafa/paper/issues
 publish_to: none
 version: 0.1.0-beta.1+1
 

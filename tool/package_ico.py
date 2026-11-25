@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Wrap approved PNG variants in ICO containers without changing their pixels."""
 from pathlib import Path
 import struct

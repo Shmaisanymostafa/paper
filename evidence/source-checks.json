@@ -1,10 +1,8 @@
 {
-  "status": "source-preparation-only",
-  "python_tool_tests": 6,
-  "dart_files_structurally_checked": 10,
-  "localized_keys": 82,
-  "flutter_tests": "NOT RUN: SDK/package downloads blocked",
-  "native_builds": "NOT RUN",
+  "kind": "source-hygiene-not-flutter-validation",
+  "dartFiles": 55,
+  "errors": [],
+  "sampleSha256": "d6696035fb41344a063e360b03f914a4048acd975a333e863ca16f6eb56bd348",
   "fonts": [
     {
       "file": "assets/fonts/IBMPlexSans-Regular.ttf",
@@ -15,12 +13,12 @@
       "sha256": "a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1"
     },
     {
-      "file": "assets/fonts/IBMPlexSansArabic-Regular.ttf",
-      "sha256": "8e0f1046c736bf939d4939ee3ae0116acf61cbcd6592deae7656761627080981"
-    },
-    {
       "file": "assets/fonts/IBMPlexSansArabic-Bold.ttf",
       "sha256": "b74f809dead12442ed56e02a12c3bcc02076c9ad4e32f17d0a9ca6fc1aafc89e"
+    },
+    {
+      "file": "assets/fonts/IBMPlexSansArabic-Regular.ttf",
+      "sha256": "8e0f1046c736bf939d4939ee3ae0116acf61cbcd6592deae7656761627080981"
     }
   ]
 }

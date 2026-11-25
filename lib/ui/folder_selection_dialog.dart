@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 

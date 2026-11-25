@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Tests the actual development tooling; these are not Flutter tests."""
 import importlib.util
 import json
@@ -27,6 +30,19 @@ icns = load('package_icns')
 
 
 class ToolingTests(unittest.TestCase):
+    def test_source_scan_prunes_generated_trees_but_keeps_project_sources(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for name in ('lib/reader.dart', 'android/app/settings.kts',
+                         'build/generated.dart', '.dart_tool/cache.json',
+                         'macos/Pods/dependency.swift', 'node_modules/package/index.md'):
+                file = root / name
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_text('synthetic source')
+            self.assertEqual({file.relative_to(root).as_posix()
+                              for file in audit.source_files(root)},
+                             {'lib/reader.dart', 'android/app/settings.kts'})
+
     def test_apple_upstream_notice_inventory_matches_bundled_notices(self):
         root = HERE.parent
         report = json.loads((root / 'docs/apple-upstream-notices.json').read_text())

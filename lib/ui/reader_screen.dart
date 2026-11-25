@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,7 +9,6 @@ import 'dart:math';
 import 'package:file_selector/file_selector.dart' as fs;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:path/path.dart' as p;
 import 'package:pdfrx/pdfrx.dart';
 
 import '../data/library_repository.dart';
@@ -14,6 +16,7 @@ import '../domain/library.dart';
 import '../domain/note_changes.dart';
 import '../services/document_share.dart';
 import '../services/document_print.dart';
+import '../services/exclusive_file_save.dart';
 import '../services/page_copy.dart';
 import 'strings.dart';
 import 'page_navigation.dart';
@@ -299,11 +302,11 @@ class _ReaderScreenState extends State<ReaderScreen>
     PdfDocument document,
     PdfViewerController controller,
   ) async {
+    if (!mounted) return;
     final version = _reload;
     _searcher?.removeListener(_refreshSearch);
     _searcher?.dispose();
     _searcher = PdfTextSearchSession(controller)..addListener(_refreshSearch);
-    if (!mounted) return;
     setState(() {
       _printWidth = document.pages.isEmpty ? 0 : document.pages.first.width;
       _printHeight = document.pages.isEmpty ? 0 : document.pages.first.height;
@@ -677,7 +680,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       ),
     );
     field.dispose();
-    if (number != null && _controller.isReady) {
+    if (number != null && mounted && _controller.isReady) {
       await _controller.goToPage(pageNumber: number);
     }
   }
@@ -810,7 +813,7 @@ class _ReaderScreenState extends State<ReaderScreen>
       notes: _document.notes,
       bookmarks: _document.bookmarks,
     ).encode();
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (!ExclusiveFileSave.supported) {
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -845,28 +848,17 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
     final target = await fs.getSaveLocation(
       suggestedName: '${_document.title}.paper.json',
+      confirmButtonText: s['exportNewFile'],
     );
-    if (target == null) return;
-    // Never allow annotation export to replace any PDF, including an original.
-    if (!target.path.toLowerCase().endsWith('.json')) {
-      throw const LibraryFormatException('Choose a .json file.');
-    }
-    if (p.isWithin(
-      p.absolute(widget.repository.root.path),
-      p.absolute(target.path),
-    )) {
-      throw const LibraryFormatException(
-        'Choose a location outside the app data folder.',
-      );
-    }
-    final file = fs.XFile.fromData(
-      utf8.encode(text),
-      mimeType: 'application/json',
-      name: 'annotations.json',
+    if (target == null || !mounted) return;
+    await ExclusiveFileSave.save(
+      path: target.path,
+      bytes: utf8.encode(text),
+      libraryRoot: widget.repository.root,
+      extension: '.json',
     );
-    await file.saveTo(target.path);
     _message('exportComplete');
-  });
+  }, error: 'exportError');
   Future<void> _importNotes() => _safely(() async {
     final file = await fs.openFile(
       acceptedTypeGroups: const [
@@ -878,11 +870,12 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       ],
     );
-    if (file == null) return;
+    if (file == null || !mounted) return;
     if (await file.length() > 5 * 1024 * 1024) {
       throw const LibraryFormatException('Too large.');
     }
     final bundle = AnnotationBundle.decode(await file.readAsString());
+    if (!mounted || _closing) return;
     final state = await widget.repository.mergeAnnotations(
       _document.id,
       bundle,
@@ -890,7 +883,7 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
     if (mounted) setState(() => _document = state.find(_document.id)!);
     if (mounted) _panelChanges.value++;
-    _controller.invalidate();
+    if (mounted && _controller.isReady) _controller.invalidate();
     _message('importComplete');
   }, error: 'annotationsError');
 

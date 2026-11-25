@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Regenerate the fully synthetic sample. ReportLab is a development tool only."""
 from pathlib import Path
 from reportlab.pdfgen import canvas

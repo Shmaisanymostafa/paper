@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 

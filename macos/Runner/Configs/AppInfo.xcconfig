@@ -11,4 +11,4 @@ PRODUCT_NAME = Cave Paper
 PRODUCT_BUNDLE_IDENTIFIER = technology.cave.paper
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 technology.cave. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Cave. Licensed under the MIT License.

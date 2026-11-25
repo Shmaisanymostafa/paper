@@ -7,10 +7,12 @@ Windows and Linux. The first version keeps original PDFs unchanged and stores
 reading state and annotations locally. It has no Cave Accounts dependency,
 backend, advertising, analytics, remote font loading or app update service.
 
-> **Status: development source, not a qualified beta.** Mac validation now passes
-> static analysis and 72 automated tests (4 skipped, local PDFium configured). macOS PDFium sample and reader-toolbar integration pass. Native runners and locked dependencies
-> are included. Source is published at [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
-> Native installation and device acceptance remain pending. See [validation status](docs/VALIDATION.md).
+> **Status: development source; binary release qualification is incomplete.**
+> Native runners and locked dependencies are included. Source is published at
+> [Shmaisanymostafa/paper](https://github.com/Shmaisanymostafa/paper).
+> See the [current release review](docs/RELEASE_READINESS.md),
+> [validation history](docs/VALIDATION.md) and [remaining gates](docs/RELEASE.md).
+> The beta version in `pubspec.yaml` does not identify a published installer.
 
 ## Implemented in source
 
@@ -24,6 +26,8 @@ backend, advertising, analytics, remote font loading or app update service.
 - Library title search, clear search, result counts and recent/title/import sorting.
 - Explicit system print dialog on Apple/Android (whole document, uniform page sizes, unprotected PDFs up to 64 MiB; notes excluded).
 - Annotation JSON import/export, bound to the exact PDF fingerprint.
+- New-file-only annotation export on macOS/Linux; explicit clipboard export on Windows/mobile.
+- Save selected/reordered/duplicated pages with optional rotation to a new PDF on macOS/Linux.
 - Password dialog for encrypted PDFs, without saving passwords.
 - English/Arabic with RTL, locally bundled IBM Plex, light/dark/system themes.
 - Checksummed metadata snapshots, serialized changes and previous-generation recovery.
@@ -31,8 +35,11 @@ backend, advertising, analytics, remote font loading or app update service.
 
 Annotations are **app-local sidecars**, not standard annotations embedded in a
 PDF. They are not redactions. Share the original PDF plus the exported annotation
-JSON to carry them to another Cave Paper installation. On desktop, export uses
-Save As. Mobile also retains explicit copying of the JSON. Android, iOS, macOS
+JSON to carry them to another Cave Paper installation. On macOS/Linux, Save As
+requires a new filename outside the library and refuses existing files or links.
+Windows/mobile use explicit copying of the JSON; native sharing can also attach
+it as a separate file. JSON is unencrypted and may contain text selected from
+password-protected PDFs. Android, iOS, macOS
 and Windows offer native Share PDF with optional annotation JSON; actual native
 share-sheet acceptance on each target remains pending.
 
@@ -46,26 +53,31 @@ PDF viewer automatically.**
 
 ## Start development
 
+For an Android “App not installed” error, see [installation checks](docs/ANDROID_INSTALL.md).
+
 Requirements are selected from pdfrx 2.12.0: **Flutter >=3.47, Dart >=3.13**.
+The tested SDK is **Flutter 3.47.6 stable / Dart 3.13.5**.
+Repository tooling requires Git and Python 3.9+; on Windows, use `py -3` in
+place of `python3` if that is how Python is installed.
 Native PDFium requires a C toolchain. iOS needs Xcode on macOS; Windows needs
 Visual Studio's desktop C++ tools and Developer Mode; Linux needs Flutter's GTK
 build dependencies. Native code and engine binaries are downloaded at build time,
 not app runtime. iOS targets 15+, macOS 12+.
 
 ```bash
-python3 tool/bootstrap.py
-flutter pub get
-dart format lib test integration_test
-python3 tool/license_inventory.py
+git clone https://github.com/Shmaisanymostafa/paper.git
+cd paper
+flutter doctor -v
+flutter pub get --enforce-lockfile
 python3 tool/check.py
 flutter run -d macos   # or linux, windows, an Android/iOS device
 ```
 
-`bootstrap.py` generates only the five native runners and refuses to overwrite
-existing runners. It preserves all app source and tests, sets the native app ID
-to `technology.cave.paper`, adds macOS user-selected-file entitlement and removes
-release networking entitlements. Review and commit the generated runners and
-resolved `pubspec.lock` after a successful build. No lockfile is fabricated here.
+Native runners are already tracked. `tool/bootstrap.py` is a historical generation
+tool and deliberately refuses an existing checkout; it is not a normal setup
+step. Do not regenerate runners over the custom file-opening adapters.
+Keep the genuine `pubspec.lock` committed. The check command verifies its hash
+against the collected package notices without rewriting them.
 
 To exercise real PDFium rendering locally:
 
@@ -73,9 +85,12 @@ To exercise real PDFium rendering locally:
 python3 tool/check.py --device macos
 ```
 
-The integration test opens the bundled synthetic PDF, extracts known text,
+This launches both native integration tests. The offline test opens the bundled synthetic PDF, extracts known text,
 renders a page, and verifies that the imported bytes remain unchanged while Dart
-HTTP is forbidden. It does not establish behavior on other platforms.
+HTTP is forbidden. The toolbar test exercises real search and reader settings.
+They do not establish behavior on other platforms or a traffic capture of the
+packaged app. Optional headless native tests require `PDFIUM_PATH` pointing to an
+audited local PDFium binary; see [Contributing](CONTRIBUTING.md).
 
 ## Reading workflow
 
@@ -105,6 +120,9 @@ the reader offers a warning and an explicit copy action instead.
 
 See [architecture](docs/ARCHITECTURE.md), [privacy](docs/PRIVACY.md),
 [license review](docs/DEPENDENCIES.md), and [release checklist](docs/RELEASE.md).
+Contributions follow [Contributing](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md). See [Support](SUPPORT.md) for bug reports
+and [Security](SECURITY.md) for private vulnerability reporting.
 
 ## Open-source license
 
@@ -114,6 +132,10 @@ additional third-party notices. The precise resolved package graph and downloade
 native binaries **still require a complete notice/compatibility audit before
 binary publication**. No proprietary PDF SDK is selected and no native binaries
 are included in this source tree.
+
+See [LICENSE](LICENSE), [Authors](AUTHORS.md) and the
+[third-party notice index](THIRD_PARTY_NOTICES.md). Project-owned Dart and Python
+source includes SPDX identifiers; third-party notices remain intact.
 
 The Cave name and logos identify their owner; the MIT code license does not
 grant trademark rights. Forks may rename the app.

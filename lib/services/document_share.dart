@@ -1,7 +1,11 @@
+// Copyright (c) 2026 Cave. See AUTHORS.md.
+// SPDX-License-Identifier: MIT
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:crypto/crypto.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -36,6 +40,8 @@ class DocumentShare {
   }) async {
     if (_busy) return;
     _busy = true;
+    Directory? stagedDirectory;
+    var handedOff = false;
     try {
       // Verify the imported copy still exists and belongs to this fingerprint.
       await repository.verifyDocument(document);
@@ -46,13 +52,20 @@ class DocumentShare {
       // Native providers may return an app-specific path that does not exist yet.
       await cache.create(recursive: true);
       final directory = await cache.createTemp('cave-paper-share-');
+      stagedDirectory = directory;
       // Path-backed files ignore name overrides on some native platforms.
-      // Copy by streaming into a unique cache folder, never into the library.
-      final copy = await file.copy(p.join(directory.path, '$title.pdf'));
-      if (isActive != null && !isActive()) {
-        await directory.delete(recursive: true);
-        return;
+      // Bound the copy even if the source grows after verification, then verify
+      // the staged bytes: the managed file may have changed during preparation.
+      final copy = File(p.join(directory.path, '$title.pdf'));
+      await file.openRead(0, document.byteLength + 1).pipe(copy.openWrite());
+      if (await copy.length() != document.byteLength ||
+          (await sha256.bind(copy.openRead()).first).toString() !=
+              document.id) {
+        throw const LibraryFormatException(
+          'PDF copy is missing or changed. Import your original again.',
+        );
       }
+      if (isActive != null && !isActive()) return;
       final files = <XFile>[XFile(copy.path, mimeType: 'application/pdf')];
       final names = <String>['$title.pdf'];
       if (includeAnnotations) {
@@ -70,12 +83,10 @@ class DocumentShare {
         );
         names.add('$title.paper.json');
       }
-      if (isActive != null && !isActive()) {
-        await directory.delete(recursive: true);
-        return;
-      }
+      if (isActive != null && !isActive()) return;
       // Keep cached copies after handing off: receivers may read asynchronously.
       // A native share result is not proof of delivery. Do not claim success.
+      handedOff = true;
       await _share(
         ShareParams(
           files: files,
@@ -85,6 +96,13 @@ class DocumentShare {
       );
     } finally {
       _busy = false;
+      if (!handedOff && stagedDirectory != null) {
+        try {
+          await stagedDirectory.delete(recursive: true);
+        } on FileSystemException {
+          // Best effort: never hide the preparation failure with cleanup errors.
+        }
+      }
     }
   }
 

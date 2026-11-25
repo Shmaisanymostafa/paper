@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Cave. See AUTHORS.md.
+# SPDX-License-Identifier: MIT
+
 """Generate native runners without replacing Cave Paper's source or tests."""
 from pathlib import Path
 import plistlib

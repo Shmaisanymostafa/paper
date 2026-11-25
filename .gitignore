@@ -4,6 +4,7 @@ build/
 coverage/
 *.iml
 .idea/
+.vscode/
 .DS_Store
 __pycache__/
 *.pyc
@@ -15,6 +16,18 @@ platforms-local/
 key.properties
 *.p12
 *.mobileprovision
+*.p8
+*.pfx
+.env
+.env.*
+!.env.example
+*.apk
+*.aab
+*.ipa
+*.dmg
+*.msi
+*.xcarchive/
+*.dSYM/
 android/local.properties
 ios/Pods/
 macos/Pods/
