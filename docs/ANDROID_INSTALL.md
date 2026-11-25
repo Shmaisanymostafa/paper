@@ -23,8 +23,11 @@ ZIP payload entries remain byte-identical; signing adds only certificate metadat
 Samsung A50 hardware acceptance is still pending the owner's check.
 
 The APK requires Android 7.0/API 24 or later and includes `arm64-v8a`,
-`armeabi-v7a` and `x86_64` native libraries. Its manifest requests no network or
-broad storage permissions. PDF access uses explicit system selection.
+`armeabi-v7a` and `x86_64` native libraries. Its manifest requests no network
+permission. From 0.1.0-beta.2 it declares All files access (and read-only
+storage up to Android 10) for the opt-in **On this device** list only; Android
+asks the person before anything is listed, and other PDF access still uses
+explicit system selection, Open with or Share.
 
 ## Before sharing an APK
 

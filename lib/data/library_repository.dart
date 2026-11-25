@@ -291,6 +291,9 @@ class LibraryRepository {
     try {
       final file = documentFile(id);
       if (await file.exists()) await file.delete();
+      // The library's first-page preview, if one was rendered.
+      final preview = File(p.join(root.path, 'thumbnails', '$id.png'));
+      if (await preview.exists()) await preview.delete();
     } on FileSystemException {
       warning = 'cleanup';
     }

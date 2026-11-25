@@ -17,6 +17,11 @@ backend, advertising, analytics, remote font loading or app update service.
 ## Implemented in source
 
 - Native local-file picker; PDF import into an app-managed library (200 MiB limit).
+- Opt-in **On this device** list of PDFs already on the device (Android with All files
+  access; Desktop/Documents/Downloads on Windows/Linux; picked folders on desktop).
+  Files are copied only when opened. See [privacy](docs/PRIVACY.md).
+- Share to Cave Paper on Android; first-page thumbnails and Continue reading;
+  Ctrl/Cmd+O; Default PDF app help (never changes defaults itself).
 - Content-addressed deduplication, SHA-256 integrity checks and recent reading.
 - Scroll, pinch/zoom, page navigation and PDF contents/outline.
 - Selectable-text search with progress and highlighted results; no OCR claim.
@@ -29,7 +34,7 @@ backend, advertising, analytics, remote font loading or app update service.
 - New-file-only annotation export on macOS/Linux; explicit clipboard export on Windows/mobile.
 - Save selected/reordered/duplicated pages with optional rotation to a new PDF on macOS/Linux.
 - Password dialog for encrypted PDFs, without saving passwords.
-- English/Arabic with RTL, locally bundled IBM Plex, light/dark/system themes.
+- English/Arabic with RTL, locally bundled IBM Plex, Cave light/dark/black/system themes.
 - Checksummed metadata snapshots, serialized changes and previous-generation recovery.
 - Explicit removal of the imported copy, never the selected original file.
 

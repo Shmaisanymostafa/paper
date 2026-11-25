@@ -14,8 +14,11 @@ import 'package:path_provider/path_provider.dart';
 import 'data/library_repository.dart';
 import 'data/offline_policy.dart';
 import 'domain/library.dart';
+import 'services/device_pdfs.dart';
+import 'services/document_thumbnails.dart';
 import 'ui/library_screen.dart';
 import 'ui/strings.dart';
+import 'ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +62,14 @@ class _PaperBootstrapState extends State<PaperBootstrap> {
   Widget build(BuildContext context) => FutureBuilder(
     future: _repository,
     builder: (context, snapshot) {
-      if (snapshot.hasData) return PaperApp(repository: snapshot.data!);
+      if (snapshot.hasData) {
+        final repository = snapshot.data!;
+        return PaperApp(
+          repository: repository,
+          devicePdfs: DevicePdfs(),
+          thumbnails: DocumentThumbnails(repository),
+        );
+      }
       return MaterialApp(
         home: Scaffold(
           body: Center(
@@ -88,8 +98,17 @@ class _PaperBootstrapState extends State<PaperBootstrap> {
 }
 
 class PaperApp extends StatefulWidget {
-  const PaperApp({required this.repository, super.key});
+  const PaperApp({
+    required this.repository,
+    this.devicePdfs,
+    this.thumbnails,
+    super.key,
+  });
   final LibraryRepository repository;
+
+  /// Optional so tests stay free of native channels and PDFium rendering.
+  final DevicePdfs? devicePdfs;
+  final DocumentThumbnails? thumbnails;
   @override
   State<PaperApp> createState() => _PaperAppState();
 }
@@ -123,29 +142,6 @@ class _PaperAppState extends State<PaperApp> {
     if (mounted) setState(() => _settings = state.settings);
   }
 
-  ThemeData _theme(Brightness brightness) {
-    final colors = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF147F79),
-      brightness: brightness,
-    );
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: colors,
-      fontFamily: _settings.language == 'ar'
-          ? 'IBMPlexSansArabic'
-          : 'IBMPlexSans',
-      scaffoldBackgroundColor: brightness == Brightness.light
-          ? const Color(0xFFF5F7F6)
-          : const Color(0xFF10232C),
-      inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-      ),
-      visualDensity: VisualDensity.standard,
-    );
-  }
-
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Cave Paper',
@@ -153,12 +149,18 @@ class _PaperAppState extends State<PaperApp> {
     locale: Locale(_settings.language),
     supportedLocales: const [Locale('en'), Locale('ar')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
-    theme: _theme(Brightness.light),
-    darkTheme: _theme(Brightness.dark),
+    theme: PaperTheme.build(Appearance.light, language: _settings.language),
+    // Black is a dark-mode theme; System follows the OS with standard Dark.
+    darkTheme: PaperTheme.build(
+      _settings.appearance == Appearance.black
+          ? Appearance.black
+          : Appearance.dark,
+      language: _settings.language,
+    ),
     themeMode: switch (_settings.appearance) {
       Appearance.system => ThemeMode.system,
       Appearance.light => ThemeMode.light,
-      Appearance.dark => ThemeMode.dark,
+      Appearance.dark || Appearance.black => ThemeMode.dark,
     },
     home: !_ready
         ? const Scaffold(body: Center(child: CircularProgressIndicator()))
@@ -167,6 +169,8 @@ class _PaperAppState extends State<PaperApp> {
             settings: _settings,
             onSettingsChanged: _changeSettings,
             strings: PaperStrings(_settings.language),
+            devicePdfs: widget.devicePdfs,
+            thumbnails: widget.thumbnails,
           ),
   );
 }

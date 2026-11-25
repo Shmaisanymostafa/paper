@@ -14,7 +14,7 @@ class LibraryFormatException implements Exception {
   String toString() => message;
 }
 
-enum Appearance { system, light, dark }
+enum Appearance { system, light, dark, black }
 
 class PaperSettings {
   const PaperSettings({

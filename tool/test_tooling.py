@@ -92,21 +92,33 @@ class ToolingTests(unittest.TestCase):
         self.assertEqual(values['distributionSha256Sum'],
                          'b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06')
 
-    def test_android_pdf_candidate_does_not_claim_web_or_storage_permissions(self):
+    def test_android_pdf_candidate_has_no_web_or_write_permissions(self):
         manifest = ET.parse(HERE.parent / 'android/app/src/main/AndroidManifest.xml').getroot()
         android = '{http://schemas.android.com/apk/res/android}'
         activity = manifest.find('application/activity')
         self.assertEqual(activity.get(android + 'launchMode'), 'singleTop')
-        filters = [f for f in activity.findall('intent-filter')
-                   if any(a.get(android + 'name') == 'android.intent.action.VIEW' for a in f.findall('action'))]
+
+        def actions(f):
+            return {a.get(android + 'name') for a in f.findall('action')}
+
+        filters = [f for f in activity.findall('intent-filter') if 'android.intent.action.VIEW' in actions(f)]
         self.assertEqual(len(filters), 1)
         values = filters[0].findall('data')
         self.assertEqual({d.get(android + 'scheme') for d in values if d.get(android + 'scheme')}, {'file', 'content'})
         self.assertEqual({d.get(android + 'mimeType') for d in values if d.get(android + 'mimeType')}, {'application/pdf'})
-        forbidden = {'android.permission.INTERNET', 'android.permission.MANAGE_EXTERNAL_STORAGE',
-                     'android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE'}
-        permissions = {p.get(android + 'name') for p in manifest.findall('uses-permission')}
-        self.assertFalse(permissions & forbidden)
+        # Share to Cave Paper accepts PDFs only.
+        shares = [f for f in activity.findall('intent-filter') if 'android.intent.action.SEND' in actions(f)]
+        self.assertEqual(len(shares), 1)
+        self.assertEqual(actions(shares[0]), {'android.intent.action.SEND', 'android.intent.action.SEND_MULTIPLE'})
+        self.assertEqual({d.get(android + 'mimeType') for d in shares[0].findall('data')}, {'application/pdf'})
+        permissions = {p.get(android + 'name'): p for p in manifest.findall('uses-permission')}
+        self.assertFalse(set(permissions) & {'android.permission.INTERNET',
+                                             'android.permission.WRITE_EXTERNAL_STORAGE'})
+        # Read access exists only for the opt-in device list; the legacy runtime
+        # permission stops at Android 10, where All files access takes over.
+        self.assertLessEqual(set(permissions), {'android.permission.READ_EXTERNAL_STORAGE',
+                                                'android.permission.MANAGE_EXTERNAL_STORAGE'})
+        self.assertEqual(permissions['android.permission.READ_EXTERNAL_STORAGE'].get(android + 'maxSdkVersion'), '29')
 
     def test_ios_open_in_is_pdf_viewer_not_forced_owner(self):
         plist = plistlib.loads((HERE.parent / 'ios/Runner/Info.plist').read_bytes())

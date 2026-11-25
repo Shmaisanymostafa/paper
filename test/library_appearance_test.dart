@@ -6,6 +6,7 @@ import 'package:cave_paper/data/library_repository.dart';
 import 'package:cave_paper/domain/library.dart';
 import 'package:cave_paper/main.dart';
 import 'package:cave_paper/ui/strings.dart';
+import 'package:cave_paper/ui/theme.dart';
 
 void main() {
   test('rail defaults, validation and field-scoped persistence', () async {
@@ -131,7 +132,7 @@ void main() {
           );
           expect(
             (preview.decoration! as BoxDecoration).color,
-            const Color(0xFF10232C),
+            PaperTheme.darkPage,
           );
           expect(
             tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,

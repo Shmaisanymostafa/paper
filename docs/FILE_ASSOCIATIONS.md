@@ -24,7 +24,10 @@ unapproved substitutions or claim these features shipped.
 
 Android now advertises ACTION_VIEW application/pdf for content/file URIs,
 handles initial and subsequent intents, copies off the UI thread with a 200MiB
-limit and releases only temporary files it owns. No storage-wide permission.
+limit and releases only temporary files it owns. Each copy keeps the provider's
+display name, so the library title matches the original file. ACTION_SEND and
+ACTION_SEND_MULTIPLE for application/pdf add **Share to Cave Paper**. Storage-wide
+access exists only for the opt-in device list, granted by the person in Android settings.
 
 The iOS UIScene/AppDelegate implementation and bounded coordinated imports are
 documented in IOS_OPEN_IN.md. The iOS simulator adapter compiles; physical-device/Open In acceptance is still pending. Android build qualification is still pending. Dart protocol tests cover queued cold paths and warm
@@ -39,11 +42,11 @@ are packaged, with native installation/icon-cache checks still pending. Windows/
 | --- | --- | --- |
 | macOS | Actual LaunchServices PDF Viewer/Alternate claim and document icon; release build passes | Installed cold/warm Open With and signing/notarization qualification |
 | iOS | PDF Viewer/Alternate plist, scene adapter, simulator build passes | Files/provider cold/warm Open In on device; no universal default-reader claim |
-| Android | file/content PDF VIEW filter, singleTop; source denies network/storage-wide permissions | APK build and device intent/chooser acceptance |
+| Android | file/content PDF VIEW filter, singleTop; PDF-only SEND/SEND_MULTIPLE; no network permission; All files access only for the opt-in device list | APK build and device intent/chooser acceptance |
 | Windows | Source argument/IPC adapter and per-user installer registration | Per-user installer ProgID/OpenWith source added; Inno compile, install/uninstall and native tests pending |
 | Linux | application/pdf desktop-entry template and GApplication adapter | Desktop entry installation, native build/session-bus tests |
 
-Tests assert Apple Viewer/Alternate metadata, Android PDF-only local intents/no
-broad-storage permissions, and Linux file-argument desktop entry. These are
+Tests assert Apple Viewer/Alternate metadata, Android PDF-only local intents, no
+network or write permission, and Linux file-argument desktop entry. These are
 regression guards, not substitutes for installation and OS chooser tests.
 

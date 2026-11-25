@@ -1,10 +1,29 @@
 # Changelog
 
 Changes are recorded here before release. No binary version has been qualified
-by this repository review. `0.1.0-beta.1+1` is the current candidate version in
+by this repository review. `0.1.0-beta.2+2` is the current candidate version in
 `pubspec.yaml`, not a claim of an accepted installer.
 
 ## Unreleased
+
+### Device library, sharing and Cave theme — 2026-11-25
+
+- **On this device** (opt-in): lists PDFs already on the device without
+  copying them; a PDF is copied into the library only when opened. Android
+  searches shared storage after the person grants All files access (read-only
+  legacy permission up to Android 10). Windows/Linux search Desktop, Documents
+  and Downloads; macOS and desktop can add folders through the system picker.
+  iOS does not offer it. The scan never follows links and skips hidden folders
+  and other apps' private Android data.
+- **Share to Cave Paper** on Android (single and multiple PDFs).
+- Files opened from another Android app keep their real name as the library
+  title instead of a temporary `paper-import-…` name.
+- First-page thumbnails and a "Continue reading" row in the library.
+- Ctrl+O / Cmd+O opens a PDF from the library.
+- **Default PDF app** help in Settings: per-platform steps, and on Windows a
+  button that opens Default apps. The app still never changes defaults itself.
+- Cave design-system colours, a new **Black** appearance and 10px rectangular
+  buttons.
 
 ### Android installation fix — 2026-11-19
 
@@ -40,7 +59,7 @@ by this repository review. `0.1.0-beta.1+1` is the current candidate version in
 - Checksummed metadata generations, serialized updates and corruption recovery.
 - Grouped/pinnable tools, focus mode, remembered panels and library search/sort.
 - Keyboard Find, accessible page navigation and lazy original-page thumbnails.
-- First-import guidance without blanket filesystem permissions.
+- First-import guidance; device-wide access only through the opt-in device list.
 - User-initiated unchanged-PDF sharing with optional separate annotation JSON.
 - System printing on Apple/Android with explicit limits and confirmation;
   Windows/Linux backend qualification remains blocked.
@@ -48,8 +67,7 @@ by this repository review. `0.1.0-beta.1+1` is the current candidate version in
   macOS/Linux, with explicit fidelity-loss warnings.
 - Native PDF-opening adapter/association source for five targets; device and
   installation acceptance remain separate gates.
-- Bounded selected-folder discovery and selection components, currently unwired
-  to native pickers/library; folder indexing or sync is not advertised.
+- Opt-in device PDF listing (see above); folder syncing is not offered.
 
 See [release readiness](docs/RELEASE_READINESS.md) for current checks and
 [validation history](docs/VALIDATION.md) for earlier scoped evidence.
