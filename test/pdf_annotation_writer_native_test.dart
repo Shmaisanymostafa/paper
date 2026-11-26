@@ -8,6 +8,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:cave_paper/data/library_repository.dart';
 import 'package:cave_paper/data/offline_policy.dart';
 import 'package:cave_paper/domain/library.dart';
+import 'package:cave_paper/services/pdf_annotation_reader.dart';
 import 'package:cave_paper/services/pdf_annotation_writer.dart';
 
 typedef _Annot = ({
@@ -115,6 +116,7 @@ void main() {
             page: 1,
             text: 'Read this first — اقرأ هذا أولاً',
             boxes: boxes,
+            color: 0x4CC38A,
             createdAt: DateTime.utc(2026, 11, 26, 9, 30),
           ),
           PaperNote(
@@ -127,6 +129,17 @@ void main() {
             id: 'n2',
             page: 2,
             text: 'Second note',
+            createdAt: DateTime.utc(2026, 11, 26),
+          ),
+          PaperNote(
+            id: 'd1',
+            page: 3,
+            text: '',
+            color: 0x5BA8F5,
+            ink: [
+              InkStroke([100, 100, 150, 140, 200, 100]),
+              InkStroke([100, 200, 200, 200]),
+            ],
             createdAt: DateTime.utc(2026, 11, 26),
           ),
         ];
@@ -149,7 +162,7 @@ void main() {
         expect(state.find(saved.id)!.pageCount, 3);
         // The source and its notes are untouched.
         expect(await repo.documentFile(original.id).readAsBytes(), before);
-        expect(state.find(original.id)!.notes.length, 3);
+        expect(state.find(original.id)!.notes.length, 4);
 
         final out = await repo.documentFile(saved.id).readAsBytes();
         // For checking the result in other PDF apps by hand.
@@ -199,7 +212,40 @@ void main() {
           ]);
           // Sticky notes stack down the left edge without overlapping.
           expect(annots[1][0].rect[3], greaterThan(annots[1][1].rect[1]));
-          expect(annots[2], isEmpty);
+          expect(annots[2].single.subtype, pdfium.FPDF_ANNOT_INK);
+          // The drawing's box covers its strokes plus the line width.
+          expect(annots[2].single.rect[0], closeTo(98, 0.5));
+          expect(annots[2].single.rect[2], closeTo(202, 0.5));
+
+          // The read-back used by the notes panel finds all four, with the
+          // marked text, the comments and the chosen colours.
+          final embedded = await PdfAnnotationReader().read(pdf);
+          final ours = embedded
+              .where((e) => e.kind != EmbeddedKind.note || e.page == 2)
+              .toList();
+          final highlight = ours.firstWhere(
+            (e) => e.kind == EmbeddedKind.highlight,
+          );
+          expect(highlight.page, 1);
+          expect(highlight.quote, 'This is a synthetic PDF');
+          expect(highlight.comment, notes[0].text);
+          expect(highlight.color, 0x4CC38A);
+          expect(
+            ours.where((e) => e.kind == EmbeddedKind.note).map((e) => e.label),
+            ['Page note', 'Second note'],
+          );
+          final drawing = ours.singleWhere(
+            (e) => e.kind == EmbeddedKind.drawing,
+          );
+          expect((drawing.page, drawing.color), (3, 0x5BA8F5));
+          final fromFile = await PdfAnnotationReader().readFile(
+            repo.documentFile(saved.id).path,
+          );
+          expect(fromFile.length, embedded.length);
+          expect(
+            fromFile.firstWhere((e) => e.kind == EmbeddedKind.highlight).color,
+            0x4CC38A,
+          );
         } finally {
           await pdf.dispose();
         }

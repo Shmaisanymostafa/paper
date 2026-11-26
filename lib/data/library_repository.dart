@@ -273,6 +273,21 @@ class LibraryRepository {
         ),
       );
 
+  Future<PaperLibrary> setMarkColors({int? highlight, int? pen}) {
+    if ((highlight != null && !isMarkColor(highlight)) ||
+        (pen != null && !isMarkColor(pen))) {
+      throw const LibraryFormatException('Invalid colour.');
+    }
+    return _mutate(
+      (state) => state.copyWith(
+        settings: state.settings.copyWith(
+          highlightColor: highlight,
+          penColor: pen,
+        ),
+      ),
+    );
+  }
+
   Future<PaperLibrary> setLibraryRailCollapsed(bool collapsed) => _mutate(
     (state) => state.copyWith(
       settings: state.settings.copyWith(libraryRailCollapsed: collapsed),

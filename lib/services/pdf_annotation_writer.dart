@@ -11,10 +11,10 @@ import 'package:pdfrx/pdfrx.dart';
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 
-/// Writes Cave Paper's highlights and notes into a new copy of a PDF as
-/// standard PDF annotations that other readers show: a highlight for each
-/// highlighted passage (its note text as the comment) and a sticky note for
-/// each note without a highlight.
+/// Writes Cave Paper's highlights, drawings and notes into a new copy of a PDF
+/// as standard PDF annotations that other readers show: a highlight for each
+/// highlighted passage (its note text as the comment), an ink annotation for
+/// each drawing, and a sticky note for each note without either.
 ///
 /// The copy is saved incrementally: the original bytes come first, unchanged,
 /// followed by the new annotations. That keeps forms, outlines and existing
@@ -22,7 +22,9 @@ import '../domain/library.dart';
 /// source file and its library entry are never changed.
 class PdfAnnotationWriter {
   static const maxSourceBytes = 64 * 1024 * 1024;
-  static const _highlight = (r: 255, g: 201, b: 64);
+
+  /// Pen line width in PDF points, as drawn in the reader.
+  static const penWidth = 2.0;
 
   /// The PDF bytes with every note of [document] written in.
   Future<Uint8List> build({
@@ -138,9 +140,14 @@ class PdfAnnotationWriter {
           var stickyIndex = 0;
           for (final note in entry.value) {
             final highlight = note.boxes.isNotEmpty;
+            final drawing = note.isDrawing;
             final annot = lib.FPDFPage_CreateAnnot(
               page,
-              highlight ? pdfium.FPDF_ANNOT_HIGHLIGHT : pdfium.FPDF_ANNOT_TEXT,
+              highlight
+                  ? pdfium.FPDF_ANNOT_HIGHLIGHT
+                  : drawing
+                  ? pdfium.FPDF_ANNOT_INK
+                  : pdfium.FPDF_ANNOT_TEXT,
             );
             if (annot == nullptr) continue;
             try {
@@ -167,6 +174,29 @@ class PdfAnnotationWriter {
                   ..top = bounds.bottom + rect.top
                   ..right = bounds.left + rect.right
                   ..bottom = bounds.bottom + rect.bottom;
+              } else if (drawing) {
+                for (final stroke in note.ink) {
+                  final points = arena<pdfium.FS_POINTF>(stroke.length);
+                  for (var i = 0; i < stroke.length; i++) {
+                    points[i]
+                      ..x = bounds.left + stroke.points[2 * i]
+                      ..y = bounds.bottom + stroke.points[2 * i + 1];
+                  }
+                  ok &=
+                      lib.FPDFAnnot_AddInkStroke(
+                        annot,
+                        points,
+                        stroke.length,
+                      ) >=
+                      0;
+                }
+                ok &= lib.FPDFAnnot_SetBorder(annot, 0, 0, penWidth) != 0;
+                final rect = inkRect(note.ink, penWidth);
+                box.ref
+                  ..left = bounds.left + rect.left
+                  ..top = bounds.bottom + rect.top
+                  ..right = bounds.left + rect.right
+                  ..bottom = bounds.bottom + rect.bottom;
               } else {
                 final rect = stickyNoteRect(bounds, rotation, stickyIndex++);
                 box.ref
@@ -180,9 +210,9 @@ class PdfAnnotationWriter {
                   lib.FPDFAnnot_SetColor(
                     annot,
                     pdfium.FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color,
-                    _highlight.r,
-                    _highlight.g,
-                    _highlight.b,
+                    note.displayColor >> 16 & 0xFF,
+                    note.displayColor >> 8 & 0xFF,
+                    note.displayColor & 0xFF,
                     255,
                   ) !=
                   0;
@@ -247,6 +277,27 @@ PdfBounds highlightRect(List<HighlightBox> boxes) {
     if (b.bottom < bottom) bottom = b.bottom;
   }
   return (left: left, top: top, right: right, bottom: bottom);
+}
+
+/// The box around every point of [ink], widened by the line width.
+PdfBounds inkRect(List<InkStroke> ink, double width) {
+  var left = double.infinity, bottom = double.infinity;
+  var right = double.negativeInfinity, top = double.negativeInfinity;
+  for (final stroke in ink) {
+    for (var i = 0; i < stroke.points.length; i += 2) {
+      final x = stroke.points[i], y = stroke.points[i + 1];
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < bottom) bottom = y;
+      if (y > top) top = y;
+    }
+  }
+  return (
+    left: left - width,
+    top: top + width,
+    right: right + width,
+    bottom: bottom - width,
+  );
 }
 
 /// Joins word boxes that sit next to each other on the same line, so other

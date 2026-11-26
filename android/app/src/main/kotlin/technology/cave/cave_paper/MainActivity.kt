@@ -26,6 +26,7 @@ class MainActivity : FlutterActivity() {
     private val owned = mutableMapOf<String, File>()
     private var channel: MethodChannel? = null
     private var storageChannel: MethodChannel? = null
+    private var defaultsChannel: MethodChannel? = null
     private var storageResult: MethodChannel.Result? = null
     private var ready = false
     private var closed = false
@@ -67,7 +68,53 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+        defaultsChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
+            "technology.cave.paper/defaults")
+        defaultsChannel!!.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "pdfHandler" -> result.success(pdfHandler())
+                "openAppSettings" -> result.success(openAppSettings(call.arguments as? String))
+                else -> result.notImplemented()
+            }
+        }
         receive(intent)
+    }
+
+    // ---- Default PDF app: read-only check plus a link to Android's own page. ----
+
+    /** The app Android opens PDFs with right now, or null when it would ask. */
+    private fun pdfHandler(): Map<String, Any>? {
+        val probe = Intent(Intent.ACTION_VIEW).setDataAndType(
+            Uri.parse("content://technology.cave.paper.probe/document.pdf"), "application/pdf")
+        return try {
+            val info = packageManager.resolveActivity(probe, PackageManager.MATCH_DEFAULT_ONLY)
+                ?: return null
+            val pkg = info.activityInfo?.packageName ?: return null
+            // Without a default, Android resolves to its own chooser instead.
+            val candidates = packageManager
+                .queryIntentActivities(probe, PackageManager.MATCH_DEFAULT_ONLY)
+                .mapNotNull { it.activityInfo?.packageName }
+            if (pkg !in candidates) return null
+            mapOf(
+                "package" to pkg,
+                "label" to info.loadLabel(packageManager).toString(),
+                "self" to (pkg == packageName),
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Opens Android's App info page for [pkg]; the person changes the default. */
+    private fun openAppSettings(pkg: String?): Boolean {
+        if (pkg == null || !Regex("^[A-Za-z0-9_.]{1,200}$").matches(pkg)) return false
+        return try {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:$pkg")))
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -252,6 +299,7 @@ class MainActivity : FlutterActivity() {
         closed = true
         channel?.setMethodCallHandler(null)
         storageChannel?.setMethodCallHandler(null)
+        defaultsChannel?.setMethodCallHandler(null)
         worker.shutdown()
         owned.values.forEach { it.deleteRecursively() }
         owned.clear()

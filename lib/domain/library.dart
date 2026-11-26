@@ -16,6 +16,34 @@ class LibraryFormatException implements Exception {
 
 enum Appearance { system, light, dark, black }
 
+/// Colours offered for highlights and the pen, as 0xRRGGBB.
+const markColors = [0xFFC940, 0x4CC38A, 0x5BA8F5, 0xF47EB6, 0xE5484D, 0x1F2937];
+const defaultHighlightColor = 0xFFC940, defaultPenColor = 0x1F2937;
+
+bool isMarkColor(Object? value) =>
+    value is int && value >= 0 && value <= 0xFFFFFF;
+
+/// One pen stroke in PDF page coordinates: x0, y0, x1, y1, …
+class InkStroke {
+  InkStroke(List<double> points) : points = List.unmodifiable(points) {
+    if (points.length < 4 ||
+        points.length > 4000 ||
+        points.length.isOdd ||
+        points.any((v) => !v.isFinite || v < -1000 || v > 100000)) {
+      throw const LibraryFormatException('Invalid pen stroke.');
+    }
+  }
+  final List<double> points;
+  int get length => points.length ~/ 2;
+  List<double> toJson() => points;
+  factory InkStroke.fromJson(Object? json) {
+    if (json is! List || json.any((v) => v is! num)) {
+      throw const LibraryFormatException('Invalid pen stroke.');
+    }
+    return InkStroke([for (final v in json) (v as num).toDouble()]);
+  }
+}
+
 class PaperSettings {
   const PaperSettings({
     this.appearance = Appearance.system,
@@ -25,6 +53,8 @@ class PaperSettings {
     this.libraryRailCollapsed = false,
     this.nightPages = false,
     this.twoPages = false,
+    this.highlightColor = defaultHighlightColor,
+    this.penColor = defaultPenColor,
   });
   final Appearance appearance;
   final String language;
@@ -38,6 +68,9 @@ class PaperSettings {
 
   /// Reader shows two pages side by side on wide screens.
   final bool twoPages;
+
+  /// Last chosen colours (0xRRGGBB) for new highlights and pen strokes.
+  final int highlightColor, penColor;
   PaperSettings copyWith({
     Appearance? appearance,
     String? language,
@@ -46,6 +79,8 @@ class PaperSettings {
     bool? libraryRailCollapsed,
     bool? nightPages,
     bool? twoPages,
+    int? highlightColor,
+    int? penColor,
   }) => PaperSettings(
     appearance: appearance ?? this.appearance,
     language: language ?? this.language,
@@ -54,6 +89,8 @@ class PaperSettings {
     libraryRailCollapsed: libraryRailCollapsed ?? this.libraryRailCollapsed,
     nightPages: nightPages ?? this.nightPages,
     twoPages: twoPages ?? this.twoPages,
+    highlightColor: highlightColor ?? this.highlightColor,
+    penColor: penColor ?? this.penColor,
   );
   Map<String, Object?> toJson() => {
     'appearance': appearance.name,
@@ -63,6 +100,8 @@ class PaperSettings {
     'libraryRailCollapsed': libraryRailCollapsed,
     'nightPages': nightPages,
     'twoPages': twoPages,
+    'highlightColor': highlightColor,
+    'penColor': penColor,
   };
   factory PaperSettings.fromJson(Map<String, dynamic> json) {
     final appearance = json['appearance'];
@@ -72,7 +111,11 @@ class PaperSettings {
     final libraryRailCollapsed = json['libraryRailCollapsed'] ?? false;
     final nightPages = json['nightPages'] ?? false;
     final twoPages = json['twoPages'] ?? false;
-    if (!Appearance.values.any((v) => v.name == appearance) ||
+    final highlightColor = json['highlightColor'] ?? defaultHighlightColor;
+    final penColor = json['penColor'] ?? defaultPenColor;
+    if (!isMarkColor(highlightColor) ||
+        !isMarkColor(penColor) ||
+        !Appearance.values.any((v) => v.name == appearance) ||
         !['en', 'ar'].contains(language) ||
         readerPanelVisible is! bool ||
         libraryRailCollapsed is! bool ||
@@ -91,6 +134,8 @@ class PaperSettings {
       libraryRailCollapsed: libraryRailCollapsed,
       nightPages: nightPages,
       twoPages: twoPages,
+      highlightColor: highlightColor as int,
+      penColor: penColor as int,
     );
   }
 }
@@ -130,13 +175,19 @@ class PaperNote {
     required this.text,
     required this.createdAt,
     List<HighlightBox> boxes = const [],
-  }) : boxes = List.unmodifiable(boxes) {
+    List<InkStroke> ink = const [],
+    this.color,
+  }) : boxes = List.unmodifiable(boxes),
+       ink = List.unmodifiable(ink) {
     if (!RegExp(r'^[a-zA-Z0-9_-]{1,80}$').hasMatch(id) ||
         page < 1 ||
         page > 100000 ||
         text.length > 10000 ||
         boxes.length > 2000 ||
-        (text.trim().isEmpty && boxes.isEmpty)) {
+        ink.length > 500 ||
+        (boxes.isNotEmpty && ink.isNotEmpty) ||
+        (color != null && !isMarkColor(color)) ||
+        (text.trim().isEmpty && boxes.isEmpty && ink.isEmpty)) {
       throw const LibraryFormatException('Invalid note.');
     }
   }
@@ -145,20 +196,55 @@ class PaperNote {
   final String text;
   final DateTime createdAt;
   final List<HighlightBox> boxes;
+
+  /// Pen strokes; a note has highlight boxes or strokes, never both.
+  final List<InkStroke> ink;
+
+  /// 0xRRGGBB; null means the default for the kind of note.
+  final int? color;
+
+  bool get isDrawing => ink.isNotEmpty;
+
+  /// The colour to show: the note's own, or the default for its kind.
+  int get displayColor =>
+      color ?? (isDrawing ? defaultPenColor : defaultHighlightColor);
+
+  PaperNote copyWith({String? text, List<InkStroke>? ink}) => PaperNote(
+    id: id,
+    page: page,
+    text: text ?? this.text,
+    createdAt: createdAt,
+    boxes: boxes,
+    ink: ink ?? this.ink,
+    color: color,
+  );
+
   Map<String, Object?> toJson() => {
     'id': id,
     'page': page,
     'text': text,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'boxes': boxes.map((b) => b.toJson()).toList(),
+    // Only written when used, so notes stay readable by older versions.
+    if (ink.isNotEmpty) 'ink': ink.map((s) => s.toJson()).toList(),
+    'color': ?color,
   };
-  factory PaperNote.fromJson(Map<String, dynamic> json) => PaperNote(
-    id: _string(json, 'id'),
-    page: _integer(json, 'page'),
-    text: _string(json, 'text'),
-    createdAt: DateTime.parse(_string(json, 'createdAt')),
-    boxes: _list(json, 'boxes').map(HighlightBox.fromJson).toList(),
-  );
+  factory PaperNote.fromJson(Map<String, dynamic> json) {
+    final ink = json['ink'] ?? const [];
+    final color = json['color'];
+    if (ink is! List || (color != null && !isMarkColor(color))) {
+      throw const LibraryFormatException('Invalid note.');
+    }
+    return PaperNote(
+      id: _string(json, 'id'),
+      page: _integer(json, 'page'),
+      text: _string(json, 'text'),
+      createdAt: DateTime.parse(_string(json, 'createdAt')),
+      boxes: _list(json, 'boxes').map(HighlightBox.fromJson).toList(),
+      ink: ink.map(InkStroke.fromJson).toList(),
+      color: color as int?,
+    );
+  }
 }
 
 class PaperDocument {

@@ -40,6 +40,10 @@ backend, advertising, analytics, remote font loading or app update service.
 - Favourites filter, reading progress ("Page 12 of 40") on each document,
   folder quick filters for **On this device**.
 - Night pages (inverted page colours, display only) and a two-page view on wide screens.
+- Pen drawing and six highlight/pen colours; highlights, comments and drawings
+  already inside a PDF are listed under **In this PDF**.
+- Android: the Default PDF app help names the app that opens PDFs now and links
+  to its settings, so Cave Paper can become the default (and its icon shown).
 - Password dialog for encrypted PDFs, without saving passwords.
 - English/Arabic with RTL, locally bundled IBM Plex, Cave light/dark/black/system themes.
 - Checksummed metadata snapshots, serialized changes and previous-generation recovery.

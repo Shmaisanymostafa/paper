@@ -26,13 +26,7 @@ class NoteChanges {
   ) {
     final index = _index(document, expected);
     final notes = [...document.notes];
-    notes[index] = PaperNote(
-      id: expected.id,
-      page: expected.page,
-      text: text,
-      createdAt: expected.createdAt,
-      boxes: expected.boxes,
-    );
+    notes[index] = expected.copyWith(text: text);
     return document.copyWith(notes: notes);
   }
 

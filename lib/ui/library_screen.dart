@@ -17,6 +17,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../services/default_pdf_app.dart';
+import 'default_app_status.dart';
 import '../services/device_pdfs.dart';
 import '../services/document_thumbnails.dart';
 import 'page_editor_screen.dart';
@@ -200,6 +201,8 @@ class _LibraryScreenState extends State<LibraryScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (app.canDetectHandler)
+                  DefaultAppStatus(app: app, strings: s),
                 SelectableText(s[app.stepsKey]),
                 const SizedBox(height: 12),
                 Text(

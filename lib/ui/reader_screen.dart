@@ -15,6 +15,7 @@ import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../domain/note_changes.dart';
 import '../services/document_share.dart';
+import '../services/pdf_annotation_reader.dart';
 import '../services/pdf_annotation_writer.dart';
 import '../services/document_print.dart';
 import '../services/exclusive_file_save.dart';
@@ -30,6 +31,7 @@ import 'note_editor_dialog.dart';
 import 'reader_panel_sheet.dart';
 import 'selection_actions.dart';
 import 'page_thumbnails.dart';
+import 'ink_drawing.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({
@@ -72,6 +74,15 @@ class _ReaderScreenState extends State<ReaderScreen>
   bool _panelVisible = true, _saving = false, _closing = false;
   bool _panelChangedLocally = false;
   bool _nightPages = false, _twoPages = false;
+  bool _drawing = false;
+  int _penColor = defaultPenColor, _highlightColor = defaultHighlightColor;
+  // Page -> the drawing note strokes on that page are added to while drawing.
+  final _drawSession = <int, String>{};
+  // Note ids, one entry per stroke, newest last: what Undo takes back.
+  final _strokeHistory = <String>[];
+  List<EmbeddedAnnotation>? _embedded;
+  bool _loadingEmbedded = false;
+  int _embeddedFor = -1;
   PaperStrings get s => widget.strings;
 
   @override
@@ -90,6 +101,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         _pinnedTools = state.settings.pinnedTools;
         _nightPages = state.settings.nightPages;
         _twoPages = state.settings.twoPages;
+        _penColor = state.settings.penColor;
+        _highlightColor = state.settings.highlightColor;
         if (!_panelChangedLocally) {
           _panelVisible = state.settings.readerPanelVisible;
         }
@@ -200,6 +213,10 @@ class _ReaderScreenState extends State<ReaderScreen>
         unawaited(_copyPages());
       case 'saveHighlights':
         unawaited(_saveWithHighlights());
+      case 'draw':
+        _setDrawing(true);
+      case 'highlightColor':
+        unawaited(_chooseHighlightColor());
       case 'customize':
         unawaited(_customizeToolbar());
       case 'note':
@@ -432,7 +449,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         title: '${s['readerEditNote']} · ${s['page']} ${note.page}',
         strings: s,
         initialText: note.text,
-        allowEmpty: note.boxes.isNotEmpty,
+        allowEmpty: note.boxes.isNotEmpty || note.isDrawing,
       ),
     );
     if (text == null || !mounted || text == note.text) return;
@@ -508,6 +525,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                   ? range.text.substring(0, 10000)
                   : range.text,
               boxes: boxes,
+              color: _highlightColor,
               createdAt: DateTime.now().toUtc(),
             ),
           );
@@ -564,10 +582,14 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   void _paintNotes(Canvas canvas, Rect pageRect, PdfPage page) {
-    final paint = Paint()..color = const Color(0x66FFC940);
     for (final note in _document.notes.where(
       (n) => n.page == page.pageNumber,
     )) {
+      if (note.isDrawing) {
+        paintInk(canvas, pageRect, page, note);
+        continue;
+      }
+      final paint = Paint()..color = Color(0x66000000 | note.displayColor);
       for (final b in note.boxes) {
         final rect = PdfRect(
           b.left,
@@ -843,6 +865,144 @@ class _ReaderScreenState extends State<ReaderScreen>
       ),
     );
     if (saved != null) _message('editSaved');
+  }
+
+  void _setDrawing(bool on) {
+    if (on && (_pageCount == 0 || _drawing)) return;
+    setState(() {
+      _drawing = on;
+      _drawSession.clear();
+      if (!on) _strokeHistory.clear();
+      if (on) _focusMode = false;
+    });
+    if (on) _message('drawHint');
+  }
+
+  void _setPenColor(int color) {
+    setState(() {
+      _penColor = color;
+      // New strokes in another colour belong to a new drawing.
+      _drawSession.clear();
+    });
+    unawaited(_safely(() => widget.repository.setMarkColors(pen: color)));
+  }
+
+  Future<void> _chooseHighlightColor() async {
+    final color = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(s['highlightColor']),
+        content: MarkColorPicker(
+          selected: _highlightColor,
+          onSelected: (c) => Navigator.pop(context, c),
+          strings: s,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(s['cancel']),
+          ),
+        ],
+      ),
+    );
+    if (color == null || !mounted) return;
+    setState(() => _highlightColor = color);
+    await _safely(() => widget.repository.setMarkColors(highlight: color));
+  }
+
+  Future<void> _addStroke(int page, List<double> points) async {
+    final InkStroke stroke;
+    try {
+      stroke = InkStroke(points);
+    } on LibraryFormatException {
+      return;
+    }
+    late String id;
+    await _safely(
+      () => _update((doc) {
+        final sessionId = _drawSession[page];
+        final index = sessionId == null
+            ? -1
+            : doc.notes.indexWhere((n) => n.id == sessionId);
+        final notes = [...doc.notes];
+        if (index >= 0 && notes[index].ink.length < 500) {
+          id = sessionId!;
+          notes[index] = notes[index].copyWith(
+            ink: [...notes[index].ink, stroke],
+          );
+        } else {
+          id = _noteId();
+          notes.add(
+            PaperNote(
+              id: id,
+              page: page,
+              text: '',
+              ink: [stroke],
+              color: _penColor,
+              createdAt: DateTime.now().toUtc(),
+            ),
+          );
+        }
+        return doc.copyWith(notes: notes);
+      }),
+    );
+    if (!mounted) return;
+    if (_document.notes.any((n) => n.id == id)) {
+      setState(() {
+        _drawSession[page] = id;
+        _strokeHistory.add(id);
+      });
+    }
+  }
+
+  Future<void> _undoStroke() async {
+    if (_strokeHistory.isEmpty) return;
+    final id = _strokeHistory.removeLast();
+    await _safely(
+      () => _update((doc) {
+        final notes = [...doc.notes];
+        final index = notes.indexWhere((n) => n.id == id);
+        if (index < 0) return doc;
+        final ink = notes[index].ink;
+        if (ink.length > 1) {
+          notes[index] = notes[index].copyWith(
+            ink: ink.sublist(0, ink.length - 1),
+          );
+        } else {
+          notes.removeAt(index);
+        }
+        return doc.copyWith(notes: notes);
+      }),
+    );
+    if (mounted) setState(() {});
+  }
+
+  /// Reads the PDF's own annotations once, when the notes list first shows.
+  void _loadEmbedded() {
+    if (_embeddedFor != _reload) {
+      _embedded = null;
+      _embeddedFor = _reload;
+    }
+    if (_embedded != null || _loadingEmbedded || !_controller.isReady) return;
+    _loadingEmbedded = true;
+    final reload = _reload;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      List<EmbeddedAnnotation> found;
+      try {
+        // A fresh copy: once the viewer has drawn a page, PDFium no longer
+        // reports annotation colours. Protected files use the open document.
+        found = await PdfAnnotationReader().readFile(
+          widget.repository.documentFile(_document.id).path,
+          fallback: _controller.document,
+        );
+      } catch (_) {
+        found = const [];
+      }
+      _loadingEmbedded = false;
+      if (!mounted || reload != _reload) return;
+      setState(() => _embedded = found);
+      _panelChanges.value++;
+    });
   }
 
   /// Saves a new library copy with the notes written into the PDF.
@@ -1123,47 +1283,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                           ],
                         ),
                       ),
-                    Expanded(
-                      child: _document.notes.isEmpty
-                          ? _empty('noNotes')
-                          : ListView(
-                              children: [
-                                for (final note in _document.notes)
-                                  ListTile(
-                                    isThreeLine: true,
-                                    leading: Icon(
-                                      note.boxes.isEmpty
-                                          ? Icons.sticky_note_2_outlined
-                                          : Icons.highlight,
-                                    ),
-                                    title: Text('${s['page']} ${note.page}'),
-                                    subtitle: Text(
-                                      note.text,
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    onTap: () => _controller.goToPage(
-                                      pageNumber: note.page,
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          tooltip: s['readerEditNote'],
-                                          icon: const Icon(Icons.edit_outlined),
-                                          onPressed: () => _editNote(note),
-                                        ),
-                                        IconButton(
-                                          tooltip: s['delete'],
-                                          icon: const Icon(Icons.close),
-                                          onPressed: () => _removeNote(note),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                    ),
+                    Expanded(child: _notesList()),
                   ],
                 ),
                 if (_pageCount > 0 && _controller.isReady)
@@ -1189,6 +1309,105 @@ class _ReaderScreenState extends State<ReaderScreen>
       ),
     ),
   );
+
+  /// The note's colour as a filled circle, with an icon that stays readable
+  /// on it, so dark ink and light yellow both show in every theme.
+  Widget _markIcon(IconData icon, int? color) {
+    if (color == null) return Icon(icon);
+    final fill = Color(0xFF000000 | color);
+    final onFill = ThemeData.estimateBrightnessForColor(fill) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: fill,
+      child: Icon(icon, size: 20, color: onFill),
+    );
+  }
+
+  Widget _notesList() {
+    _loadEmbedded();
+    final embedded = _embedded ?? const <EmbeddedAnnotation>[];
+    if (_document.notes.isEmpty && embedded.isEmpty) {
+      return _empty(_embedded == null ? 'opening' : 'noNotes');
+    }
+    return ListView(
+      children: [
+        for (final note in _document.notes)
+          ListTile(
+            isThreeLine: true,
+            leading: _markIcon(
+              note.isDrawing
+                  ? Icons.draw_outlined
+                  : note.boxes.isEmpty
+                  ? Icons.sticky_note_2_outlined
+                  : Icons.highlight,
+              note.boxes.isEmpty && !note.isDrawing ? null : note.displayColor,
+            ),
+            title: Text('${s['page']} ${note.page}'),
+            subtitle: Text(
+              note.isDrawing && note.text.trim().isEmpty
+                  ? s['drawingLabel']
+                  : note.text,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => _controller.goToPage(pageNumber: note.page),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: s['readerEditNote'],
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => _editNote(note),
+                ),
+                IconButton(
+                  tooltip: s['delete'],
+                  icon: const Icon(Icons.close),
+                  onPressed: () => _removeNote(note),
+                ),
+              ],
+            ),
+          ),
+        if (embedded.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+            child: Text(
+              s['inThisPdf'],
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              s['inThisPdfDetail'],
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          for (final item in embedded)
+            ListTile(
+              key: const Key('embedded-annotation'),
+              leading: _markIcon(switch (item.kind) {
+                EmbeddedKind.highlight => Icons.highlight,
+                EmbeddedKind.underline => Icons.format_underlined,
+                EmbeddedKind.strikeout => Icons.format_strikethrough,
+                EmbeddedKind.squiggly => Icons.gesture,
+                EmbeddedKind.note => Icons.comment_outlined,
+                EmbeddedKind.drawing => Icons.draw_outlined,
+              }, item.color),
+              title: Text('${s['page']} ${item.page}'),
+              subtitle: Text(
+                item.label.trim().isEmpty ? s['drawingLabel'] : item.label,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => _controller.goToPage(pageNumber: item.page),
+            ),
+        ],
+      ],
+    );
+  }
+
   Widget _searchPanel() => Column(
     children: [
       Padding(
@@ -1355,6 +1574,18 @@ class _ReaderScreenState extends State<ReaderScreen>
                             enabled: _toolEnabled(tool),
                             child: _toolLabel(tool.icon, tool.label),
                           ),
+                        PopupMenuItem(
+                          value: 'draw',
+                          enabled: ready,
+                          child: _toolLabel(Icons.draw_outlined, 'draw'),
+                        ),
+                        PopupMenuItem(
+                          value: 'highlightColor',
+                          child: _toolLabel(
+                            Icons.palette_outlined,
+                            'highlightColor',
+                          ),
+                        ),
                         if (Platform.isMacOS || Platform.isLinux)
                           PopupMenuItem(
                             value: 'copyPages',
@@ -1449,6 +1680,19 @@ class _ReaderScreenState extends State<ReaderScreen>
                           passwordProvider: _password,
                           params: PdfViewerParams(
                             onViewerReady: _ready,
+                            // While drawing, one finger draws; two still zoom.
+                            panEnabled: !_drawing,
+                            pageOverlaysBuilder: _drawing
+                                ? (context, pageRect, page) => [
+                                    InkPageOverlay(
+                                      page: page,
+                                      color: _penColor,
+                                      onStroke: (points) => unawaited(
+                                        _addStroke(page.pageNumber, points),
+                                      ),
+                                    ),
+                                  ]
+                                : null,
                             layoutPages: wide && _twoPages
                                 ? spreadLayout(rtl: s.isArabic)
                                 : null,
@@ -1485,8 +1729,10 @@ class _ReaderScreenState extends State<ReaderScreen>
                                       .surfaceContainerHighest,
                             linkHandlerParams: PdfLinkHandlerParams(
                               onLinkTap: (link) => unawaited(_link(link)),
+                              customPainter: paintRealLinks,
                             ),
                             textSelectionParams: PdfTextSelectionParams(
+                              enabled: !_drawing,
                               onTextSelectionChange: (selection) async {
                                 final version = ++_selectionVersion;
                                 final ranges = await selection
@@ -1543,60 +1789,70 @@ class _ReaderScreenState extends State<ReaderScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (!wide) navigation,
-                        Row(
-                          children: [
-                            IconButton(
-                              tooltip: wide
-                                  ? s[_panelVisible
-                                        ? 'readerHidePanel'
-                                        : 'readerShowPanel']
-                                  : s['notes'],
-                              onPressed: ready
-                                  ? () {
-                                      if (wide) {
-                                        _setPanelVisible(!_panelVisible);
-                                      } else {
-                                        _openPanel(3);
+                        if (_drawing)
+                          DrawToolbar(
+                            color: _penColor,
+                            onColor: _setPenColor,
+                            canUndo: _strokeHistory.isNotEmpty && !_saving,
+                            onUndo: () => unawaited(_undoStroke()),
+                            onDone: () => _setDrawing(false),
+                            strings: s,
+                          )
+                        else
+                          Row(
+                            children: [
+                              IconButton(
+                                tooltip: wide
+                                    ? s[_panelVisible
+                                          ? 'readerHidePanel'
+                                          : 'readerShowPanel']
+                                    : s['notes'],
+                                onPressed: ready
+                                    ? () {
+                                        if (wide) {
+                                          _setPanelVisible(!_panelVisible);
+                                        } else {
+                                          _openPanel(3);
+                                        }
                                       }
-                                    }
-                                  : null,
-                              icon: const Icon(Icons.view_sidebar_outlined),
-                            ),
-                            if (wide)
-                              Expanded(child: navigation)
-                            else
-                              const Spacer(),
-                            IconButton(
-                              tooltip: s['zoomOut'],
-                              onPressed: ready
-                                  ? () => _controller.zoomDown()
-                                  : null,
-                              icon: const Icon(Icons.zoom_out),
-                            ),
-                            IconButton(
-                              tooltip: s['zoomIn'],
-                              onPressed: ready
-                                  ? () => _controller.zoomUp()
-                                  : null,
-                              icon: const Icon(Icons.zoom_in),
-                            ),
-                            IconButton(
-                              tooltip: s['fit'],
-                              onPressed: ready
-                                  ? () => _controller.goToPage(
-                                      pageNumber: _page,
-                                      anchor: PdfPageAnchor.all,
-                                    )
-                                  : null,
-                              icon: const Icon(Icons.fit_screen),
-                            ),
-                            if (wide)
-                              Text(
-                                _saving ? s['saving'] : s['saved'],
-                                style: Theme.of(context).textTheme.bodySmall,
+                                    : null,
+                                icon: const Icon(Icons.view_sidebar_outlined),
                               ),
-                          ],
-                        ),
+                              if (wide)
+                                Expanded(child: navigation)
+                              else
+                                const Spacer(),
+                              IconButton(
+                                tooltip: s['zoomOut'],
+                                onPressed: ready
+                                    ? () => _controller.zoomDown()
+                                    : null,
+                                icon: const Icon(Icons.zoom_out),
+                              ),
+                              IconButton(
+                                tooltip: s['zoomIn'],
+                                onPressed: ready
+                                    ? () => _controller.zoomUp()
+                                    : null,
+                                icon: const Icon(Icons.zoom_in),
+                              ),
+                              IconButton(
+                                tooltip: s['fit'],
+                                onPressed: ready
+                                    ? () => _controller.goToPage(
+                                        pageNumber: _page,
+                                        anchor: PdfPageAnchor.all,
+                                      )
+                                    : null,
+                                icon: const Icon(Icons.fit_screen),
+                              ),
+                              if (wide)
+                                Text(
+                                  _saving ? s['saving'] : s['saved'],
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -1606,6 +1862,27 @@ class _ReaderScreenState extends State<ReaderScreen>
         ),
       ),
     );
+  }
+}
+
+/// pdfrx reports every annotation with a comment as a "link". Only tint real
+/// links (a web address or a jump inside the PDF), so highlights, drawings and
+/// notes keep their own look.
+void paintRealLinks(
+  Canvas canvas,
+  Rect pageRect,
+  PdfPage page,
+  List<PdfLink> links,
+) {
+  final paint = Paint()..color = const Color(0x322196F3);
+  for (final link in links) {
+    if (link.url == null && link.dest == null) continue;
+    for (final rect in link.rects) {
+      canvas.drawRect(
+        rect.toRectInDocument(page: page, pageRect: pageRect),
+        paint,
+      );
+    }
   }
 }
 

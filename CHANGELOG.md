@@ -1,10 +1,28 @@
 # Changelog
 
 Changes are recorded here before release. No binary version has been qualified
-by this repository review. `0.1.0-beta.4+4` is the current candidate version in
+by this repository review. `0.1.0-beta.5+5` is the current candidate version in
 `pubspec.yaml`, not a claim of an accepted installer.
 
 ## Unreleased
+
+### Pen, colours, highlights inside PDFs and default-app check — 2026-11-26
+
+- **Draw with pen** (reader menu): one finger draws, two fingers zoom; six
+  colours, undo last stroke, Done. Drawings are notes like highlights (listed,
+  captioned, removed, exported in annotation JSON) and are written as standard
+  ink annotations by "Save copy with highlights".
+- **Highlight colour** (reader menu): new highlights use the chosen colour; both
+  colours are remembered. Notes and drawings show their colour in the list.
+- **In this PDF**: the notes panel lists highlights, text marks, comments and
+  drawings already stored inside the file (by other apps or by Cave Paper's own
+  saved copies), with the marked text, and jumps to their page. Read-only;
+  bounded to 500 pages and 2,000 items.
+- Comments inside PDFs no longer get pdfrx's blue "link" tint; only real links
+  (web addresses and jumps) are tinted.
+- **Default PDF app (Android)**: the help now says which app opens PDFs right
+  now (and therefore whose icon file managers show) and links to that app's
+  App info page to clear it. It never changes the default itself.
 
 ### Highlights saved into the PDF — 2026-11-26
 
