@@ -21,6 +21,8 @@ import '../services/page_copy.dart';
 import 'strings.dart';
 import 'page_navigation.dart';
 import 'page_copy_dialog.dart';
+import 'page_editor_screen.dart';
+import 'spread_layout.dart';
 import 'reader_focus_frame.dart';
 import 'note_editor_dialog.dart';
 import 'reader_panel_sheet.dart';
@@ -66,6 +68,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   int _page = 1, _pageCount = 0, _reload = 0, _tab = 0, _selectionVersion = 0;
   bool _panelVisible = true, _saving = false, _closing = false;
   bool _panelChangedLocally = false;
+  bool _nightPages = false, _twoPages = false;
   PaperStrings get s => widget.strings;
 
   @override
@@ -82,6 +85,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (mounted) {
       setState(() {
         _pinnedTools = state.settings.pinnedTools;
+        _nightPages = state.settings.nightPages;
+        _twoPages = state.settings.twoPages;
         if (!_panelChangedLocally) {
           _panelVisible = state.settings.readerPanelVisible;
         }
@@ -182,6 +187,12 @@ class _ReaderScreenState extends State<ReaderScreen>
     switch (value) {
       case 'focus':
         setState(() => _focusMode = true);
+      case 'night':
+        _setReaderView(night: !_nightPages);
+      case 'spread':
+        _setReaderView(spread: !_twoPages);
+      case 'editPages':
+        unawaited(_editPages());
       case 'copyPages':
         unawaited(_copyPages());
       case 'customize':
@@ -322,9 +333,14 @@ class _ReaderScreenState extends State<ReaderScreen>
       _pageCount = document.pages.length;
       _page = _document.lastPage.clamp(1, max(1, _pageCount)).toInt();
     });
+    final pages = document.pages.length;
     await _safely(
-      () =>
-          _update((doc) => doc.copyWith(lastOpenedAt: DateTime.now().toUtc())),
+      () => _update(
+        (doc) => doc.copyWith(
+          lastOpenedAt: DateTime.now().toUtc(),
+          pageCount: pages >= 1 && pages <= 100000 ? pages : null,
+        ),
+      ),
     );
     try {
       final outline = await document.loadOutline();
@@ -774,6 +790,42 @@ class _ReaderScreenState extends State<ReaderScreen>
     }
   }
 
+  void _setReaderView({bool? night, bool? spread}) {
+    setState(() {
+      _nightPages = night ?? _nightPages;
+      if (spread != null) {
+        _twoPages = spread;
+        // The viewer only re-lays pages out when it is rebuilt.
+        _reload++;
+        _pageCount = 0;
+      }
+    });
+    unawaited(
+      _safely(() async {
+        await widget.repository.setReaderView(
+          nightPages: night,
+          twoPages: spread,
+        );
+      }),
+    );
+  }
+
+  Future<void> _editPages() async {
+    if (_pageCount == 0 || _encrypted) return;
+    await _savePage();
+    if (!mounted) return;
+    final saved = await Navigator.of(context).push<PaperDocument>(
+      MaterialPageRoute(
+        builder: (_) => PageEditorScreen(
+          repository: widget.repository,
+          document: _document,
+          strings: s,
+        ),
+      ),
+    );
+    if (saved != null) _message('editSaved');
+  }
+
   Future<void> _copyPages() async {
     if (_copyingPages || _pageCount == 0) return;
     setState(() => _copyingPages = true);
@@ -1163,6 +1215,16 @@ class _ReaderScreenState extends State<ReaderScreen>
     ],
   );
 
+  /// Night pages: inverts the rendered pages (white paper becomes dark, text
+  /// becomes light) and rotates hues back so photos keep familiar colours.
+  /// Only the display changes; the PDF is untouched.
+  Widget _nightFilter(Widget viewer) => _nightPages
+      ? ColorFiltered(
+          colorFilter: const ColorFilter.matrix(nightPageMatrix),
+          child: viewer,
+        )
+      : viewer;
+
   @override
   Widget build(BuildContext context) {
     final ready = _pageCount > 0;
@@ -1261,7 +1323,34 @@ class _ReaderScreenState extends State<ReaderScreen>
                               'copyPages',
                             ),
                           ),
+                        PopupMenuItem(
+                          value: 'editPages',
+                          enabled: ready && !_encrypted,
+                          child: _toolLabel(
+                            Icons.auto_awesome_motion_outlined,
+                            'editPages',
+                          ),
+                        ),
                         const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'night',
+                          child: _toolLabel(
+                            _nightPages
+                                ? Icons.light_mode_outlined
+                                : Icons.dark_mode_outlined,
+                            _nightPages ? 'normalPages' : 'nightPages',
+                          ),
+                        ),
+                        if (wide)
+                          PopupMenuItem(
+                            value: 'spread',
+                            child: _toolLabel(
+                              _twoPages
+                                  ? Icons.article_outlined
+                                  : Icons.menu_book_outlined,
+                              _twoPages ? 'onePage' : 'twoPages',
+                            ),
+                          ),
                         PopupMenuItem(
                           value: 'focus',
                           child: _toolLabel(
@@ -1298,79 +1387,91 @@ class _ReaderScreenState extends State<ReaderScreen>
                     if (wide && _panelVisible && !_focusMode)
                       const VerticalDivider(width: 1),
                     Expanded(
-                      child: PdfViewer.file(
-                        widget.repository.documentFile(_document.id).path,
-                        key: ValueKey('${_document.id}-$_reload'),
-                        controller: _controller,
-                        initialPageNumber: _document.lastPage,
-                        passwordProvider: _password,
-                        params: PdfViewerParams(
-                          onViewerReady: _ready,
-                          customizeContextMenuItems: (params, items) =>
-                              appendSelectionActions(
-                                items,
-                                enabled:
-                                    params.isTextSelectionEnabled &&
-                                    params
-                                        .textSelectionDelegate
-                                        .isCopyAllowed &&
-                                    params
-                                        .textSelectionDelegate
-                                        .hasSelectedText,
-                                highlightLabel: s['selectionLocalHighlight'],
-                                noteLabel: s['selectionLocalNote'],
-                                onHighlight: () => unawaited(
-                                  _annotateSelection(params, highlight: true),
-                                ),
-                                onNote: () => unawaited(
-                                  _annotateSelection(params, highlight: false),
-                                ),
-                              ),
-                          onPageChanged: _pageChanged,
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          linkHandlerParams: PdfLinkHandlerParams(
-                            onLinkTap: (link) => unawaited(_link(link)),
-                          ),
-                          textSelectionParams: PdfTextSelectionParams(
-                            onTextSelectionChange: (selection) async {
-                              final version = ++_selectionVersion;
-                              final ranges = await selection
-                                  .getSelectedTextRanges();
-                              if (mounted && version == _selectionVersion) {
-                                _selection = ranges;
-                              }
-                            },
-                          ),
-                          pagePaintCallbacks: [
-                            if (_searcher != null)
-                              _searcher!.pageTextMatchPaintCallback,
-                            _paintNotes,
-                          ],
-                          errorBannerBuilder: (context, error, stack, ref) =>
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        s['loadFailed'],
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      FilledButton(
-                                        onPressed: () => setState(() {
-                                          _pageCount = 0;
-                                          _reload++;
-                                        }),
-                                        child: Text(s['retry']),
-                                      ),
-                                    ],
+                      child: _nightFilter(
+                        PdfViewer.file(
+                          widget.repository.documentFile(_document.id).path,
+                          key: ValueKey('${_document.id}-$_reload'),
+                          controller: _controller,
+                          initialPageNumber: _page,
+                          passwordProvider: _password,
+                          params: PdfViewerParams(
+                            onViewerReady: _ready,
+                            layoutPages: wide && _twoPages
+                                ? spreadLayout(rtl: s.isArabic)
+                                : null,
+                            customizeContextMenuItems: (params, items) =>
+                                appendSelectionActions(
+                                  items,
+                                  enabled:
+                                      params.isTextSelectionEnabled &&
+                                      params
+                                          .textSelectionDelegate
+                                          .isCopyAllowed &&
+                                      params
+                                          .textSelectionDelegate
+                                          .hasSelectedText,
+                                  highlightLabel: s['selectionLocalHighlight'],
+                                  noteLabel: s['selectionLocalNote'],
+                                  onHighlight: () => unawaited(
+                                    _annotateSelection(params, highlight: true),
+                                  ),
+                                  onNote: () => unawaited(
+                                    _annotateSelection(
+                                      params,
+                                      highlight: false,
+                                    ),
                                   ),
                                 ),
-                              ),
+                            onPageChanged: _pageChanged,
+                            // Night pages invert the whole viewer, so a light
+                            // background ends up dark on screen.
+                            backgroundColor: _nightPages
+                                ? const Color(0xFFDCE6E8)
+                                : Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                            linkHandlerParams: PdfLinkHandlerParams(
+                              onLinkTap: (link) => unawaited(_link(link)),
+                            ),
+                            textSelectionParams: PdfTextSelectionParams(
+                              onTextSelectionChange: (selection) async {
+                                final version = ++_selectionVersion;
+                                final ranges = await selection
+                                    .getSelectedTextRanges();
+                                if (mounted && version == _selectionVersion) {
+                                  _selection = ranges;
+                                }
+                              },
+                            ),
+                            pagePaintCallbacks: [
+                              if (_searcher != null)
+                                _searcher!.pageTextMatchPaintCallback,
+                              _paintNotes,
+                            ],
+                            errorBannerBuilder: (context, error, stack, ref) =>
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          s['loadFailed'],
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        FilledButton(
+                                          onPressed: () => setState(() {
+                                            _pageCount = 0;
+                                            _reload++;
+                                          }),
+                                          child: Text(s['retry']),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                          ),
                         ),
                       ),
                     ),
@@ -1454,6 +1555,15 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
   }
 }
+
+/// Colour inversion followed by a 180° hue rotation: light and dark swap but
+/// reds stay red and blues stay blue.
+const nightPageMatrix = <double>[
+  0.574, -1.43, -0.144, 0, 255, //
+  -0.426, -0.43, -0.144, 0, 255, //
+  -0.426, -1.43, 0.856, 0, 255, //
+  0, 0, 0, 1, 0, //
+];
 
 String _noteId() =>
     '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x7fffffff)}';

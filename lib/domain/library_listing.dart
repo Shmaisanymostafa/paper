@@ -17,9 +17,11 @@ List<PaperDocument> libraryListing(
   Iterable<PaperDocument> documents, {
   required String query,
   required LibrarySort sort,
+  bool favoritesOnly = false,
 }) {
   final needle = query.trim().toLowerCase();
   final result = documents
+      .where((d) => !favoritesOnly || d.favorite)
       .where((d) => d.title.toLowerCase().contains(needle))
       .toList();
   result.sort((a, b) {

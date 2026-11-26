@@ -199,4 +199,107 @@ void main() {
       PaperTheme.charcoal,
     );
   });
+
+  testWidgets('phone screen shows Allow access without scrolling', (
+    tester,
+  ) async {
+    // A common phone size: 393 × 780 logical pixels after system bars.
+    tester.view.physicalSize = const Size(393, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final device = FakeDevicePdfs([phone.path], access: DeviceAccess.denied);
+    await tester.pumpWidget(app(device));
+    await settle(tester);
+    await tester.tap(find.text(PaperStrings('en')['viewDevice']));
+    await settle(tester);
+    final allow = tester.getRect(find.byKey(const ValueKey('device-allow')));
+    expect(allow.bottom, lessThanOrEqualTo(780));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('device folders filter the list and sort says date modified', (
+    tester,
+  ) async {
+    final s = PaperStrings('en');
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    for (final path in ['Download/a.pdf', 'Download/b.pdf', 'WhatsApp/c.pdf']) {
+      File(p.join(phone.path, path))
+        ..createSync(recursive: true)
+        ..writeAsStringSync('%PDF-1.4 test');
+    }
+    await tester.pumpWidget(app(FakeDevicePdfs([phone.path])));
+    await settle(tester);
+    await tester.tap(find.text(s['viewDevice']));
+    await settle(tester);
+    expect(find.text(s['deviceSortModified']), findsOneWidget);
+    expect(find.text(s['librarySortRecent']), findsNothing);
+    expect(find.text('c.pdf'), findsOneWidget);
+    await tester.tap(find.text('Download (2)'));
+    await settle(tester);
+    expect(find.text('a.pdf'), findsOneWidget);
+    expect(find.text('c.pdf'), findsNothing);
+    await tester.tap(find.text(s['deviceAllFolders']));
+    await settle(tester);
+    expect(find.text('c.pdf'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('favourites can be marked and filtered, with page progress', (
+    tester,
+  ) async {
+    final s = PaperStrings('en');
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    late PaperDocument first;
+    await tester.runAsync(() async {
+      first = await repository.importPdf(
+        name: 'First.pdf',
+        bytes: Stream.value('%PDF-1.4 one'.codeUnits),
+      );
+      await repository.importPdf(
+        name: 'Second.pdf',
+        bytes: Stream.value('%PDF-1.4 two'.codeUnits),
+      );
+      await repository.updateDocument(
+        first.id,
+        (d) => d.copyWith(
+          lastPage: 3,
+          pageCount: 5,
+          lastOpenedAt: DateTime.utc(2026),
+        ),
+      );
+    });
+    await tester.pumpWidget(app(FakeDevicePdfs([phone.path])));
+    await settle(tester);
+    expect(find.textContaining('Page 3 of 5'), findsOneWidget);
+    expect(find.byKey(const ValueKey('favorites-only')), findsNothing);
+    await tester.tap(
+      find.descendant(
+        of: find.ancestor(
+          of: find.textContaining('First.pdf'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.byTooltip(s['tools']),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(s['editPages']), findsOneWidget);
+    await tester.tap(find.text(s['favorite']));
+    // Saving runs real file I/O; pump until the library shows the result.
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await settle(tester);
+      if (find.byKey(const ValueKey('favorites-only')).evaluate().isNotEmpty) {
+        break;
+      }
+    }
+    await tester.tap(find.byKey(const ValueKey('favorites-only')));
+    await settle(tester);
+    expect(find.textContaining('First.pdf'), findsOneWidget);
+    expect(find.textContaining('Second.pdf'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

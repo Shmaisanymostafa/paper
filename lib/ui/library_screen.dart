@@ -19,6 +19,7 @@ import '../domain/library.dart';
 import '../services/default_pdf_app.dart';
 import '../services/device_pdfs.dart';
 import '../services/document_thumbnails.dart';
+import 'page_editor_screen.dart';
 import 'reader_screen.dart';
 import '../domain/library_listing.dart';
 import 'strings.dart';
@@ -74,6 +75,9 @@ class _LibraryScreenState extends State<LibraryScreen>
   String _query = '';
   final _searchController = TextEditingController();
   LibrarySort _sort = LibrarySort.recent;
+  bool _favoritesOnly = false;
+  bool _deviceByName = false;
+  String? _deviceFolder;
   PaperStrings get s => widget.strings;
   @override
   void initState() {
@@ -467,6 +471,40 @@ class _LibraryScreenState extends State<LibraryScreen>
         await _load();
       });
     }
+  }
+
+  Future<void> _toggleFavorite(PaperDocument doc) => _run(() async {
+    await widget.repository.updateDocument(
+      doc.id,
+      (d) => d.copyWith(favorite: !d.favorite),
+    );
+    await _load();
+  });
+
+  Future<void> _editPages(PaperDocument doc) async {
+    final saved = await Navigator.of(context).push<PaperDocument>(
+      MaterialPageRoute(
+        builder: (_) => PageEditorScreen(
+          repository: widget.repository,
+          document: doc,
+          strings: s,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _load();
+    if (saved == null || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(s['editSaved']),
+          action: SnackBarAction(
+            label: s['editOpen'],
+            onPressed: () => unawaited(_run(() => _read(saved))),
+          ),
+        ),
+      );
   }
 
   Future<void> _settings() async {
@@ -895,53 +933,63 @@ class _LibraryScreenState extends State<LibraryScreen>
     String detail, {
     List<Widget> actions = const [],
     String? note,
-  }) => SliverFillRemaining(
-    hasScrollBody: false,
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: SizedBox(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              if (detail.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(detail, textAlign: TextAlign.center),
-              ],
-              if (actions.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: actions,
+    bool actionsFirst = false,
+  }) {
+    // Short phone screens: smaller art so the action stays above the fold.
+    final compact = MediaQuery.sizeOf(context).height < 800;
+    final buttons = Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 12,
+      runSpacing: 12,
+      children: actions,
+    );
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(compact ? 20 : 32),
+          child: SizedBox(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: compact ? 44 : 64,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              ],
-              if (note != null) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: compact ? 12 : 20),
                 Text(
-                  note,
+                  title,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
+                if (actionsFirst && actions.isNotEmpty) ...[
+                  SizedBox(height: compact ? 12 : 20),
+                  buttons,
+                ],
+                if (detail.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(detail, textAlign: TextAlign.center),
+                ],
+                if (!actionsFirst && actions.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  buttons,
+                ],
+                if (note != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    note,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   String _folderLabel(DevicePdf pdf) {
     final folder = p.dirname(pdf.path);
@@ -954,6 +1002,13 @@ class _LibraryScreenState extends State<LibraryScreen>
       }
     }
     return folder;
+  }
+
+  /// The first folder below a search root, used for the quick filters.
+  String _topFolder(DevicePdf pdf) {
+    final label = _folderLabel(pdf);
+    if (label == '/' || label.isEmpty) return '/';
+    return p.split(label).first;
   }
 
   List<Widget> _deviceSlivers() {
@@ -1003,6 +1058,8 @@ class _LibraryScreenState extends State<LibraryScreen>
           note: access == DeviceAccess.pending
               ? s['devicePending']
               : s['deviceDenied'],
+          // On phones the explanation is long; keep the button in view.
+          actionsFirst: true,
         ),
       ];
     }
@@ -1024,10 +1081,19 @@ class _LibraryScreenState extends State<LibraryScreen>
         ),
       ];
     }
+    final all = result?.files ?? const <DevicePdf>[];
+    final counts = <String, int>{};
+    for (final pdf in all) {
+      counts.update(_topFolder(pdf), (n) => n + 1, ifAbsent: () => 1);
+    }
+    final folders = counts.keys.where((f) => f != '/').toList()
+      ..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    final topFolders = folders.take(6).toList();
+    final folder = topFolders.contains(_deviceFolder) ? _deviceFolder : null;
     final files = deviceListing(
-      result?.files ?? const [],
+      folder == null ? all : all.where((f) => _topFolder(f) == folder),
       query: _query,
-      byName: _sort == LibrarySort.title,
+      byName: _deviceByName,
     );
     final inLibrary = {
       for (final doc in _library?.documents ?? const <PaperDocument>[])
@@ -1045,7 +1111,7 @@ class _LibraryScreenState extends State<LibraryScreen>
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(s['deviceCount'].replaceAll('{count}', '${files.length}')),
-                _sortField(),
+                _deviceSortField(),
                 OutlinedButton.icon(
                   onPressed: _scanning ? null : _scanDevice,
                   icon: const Icon(Icons.refresh),
@@ -1059,6 +1125,30 @@ class _LibraryScreenState extends State<LibraryScreen>
                   ),
               ],
             ),
+            if (topFolders.length > 1) ...[
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final name in [null, ...topFolders])
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: ChoiceChip(
+                          label: Text(
+                            name == null
+                                ? s['deviceAllFolders']
+                                : '$name (${counts[name]})',
+                          ),
+                          selected: folder == name,
+                          onSelected: (_) =>
+                              setState(() => _deviceFolder = name),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
             if (_scanning)
               const Padding(
                 padding: EdgeInsets.only(top: 12),
@@ -1150,6 +1240,28 @@ class _LibraryScreenState extends State<LibraryScreen>
     ];
   }
 
+  Widget _deviceSortField() => SizedBox(
+    width: 200,
+    child: DropdownButtonFormField<bool>(
+      initialValue: _deviceByName,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: s['librarySort']),
+      items: [
+        DropdownMenuItem(value: false, child: Text(s['deviceSortModified'])),
+        DropdownMenuItem(value: true, child: Text(s['deviceSortName'])),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _deviceByName = value);
+      },
+    ),
+  );
+
+  String _pageLabel(PaperDocument doc) => doc.pageCount == null
+      ? '${s['page']} ${doc.lastPage}'
+      : s['pageOf']
+            .replaceAll('{page}', '${doc.lastPage}')
+            .replaceAll('{count}', '${doc.pageCount}');
+
   Widget _sortField() => SizedBox(
     width: 220,
     child: DropdownButtonFormField<LibrarySort>(
@@ -1175,7 +1287,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!hasQuery) _continueReading(allDocuments),
+          if (!hasQuery && !_favoritesOnly) _continueReading(allDocuments),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
             child: Wrap(
@@ -1189,6 +1301,14 @@ class _LibraryScreenState extends State<LibraryScreen>
                       .replaceAll('{total}', '${allDocuments.length}'),
                 ),
                 _sortField(),
+                if (_favoritesOnly || allDocuments.any((d) => d.favorite))
+                  FilterChip(
+                    key: const ValueKey('favorites-only'),
+                    avatar: const Icon(Icons.star_outline, size: 18),
+                    label: Text(s['favoritesOnly']),
+                    selected: _favoritesOnly,
+                    onSelected: (v) => setState(() => _favoritesOnly = v),
+                  ),
               ],
             ),
           ),
@@ -1198,9 +1318,16 @@ class _LibraryScreenState extends State<LibraryScreen>
     if (documents.isEmpty)
       _message(
         Icons.description_outlined,
-        !hasQuery ? s['empty'] : s['noMatch'],
-        !hasQuery ? s['emptyDetail'] : s['librarySearchDetail'],
+        !hasQuery && !_favoritesOnly ? s['empty'] : s['noMatch'],
+        !hasQuery && !_favoritesOnly
+            ? s['emptyDetail']
+            : s['librarySearchDetail'],
         actions: [
+          if (_favoritesOnly)
+            TextButton(
+              onPressed: () => setState(() => _favoritesOnly = false),
+              child: Text(s['libraryClearSearch']),
+            ),
           if (hasQuery)
             TextButton(
               onPressed: _clearSearch,
@@ -1223,22 +1350,61 @@ class _LibraryScreenState extends State<LibraryScreen>
                   vertical: 12,
                 ),
                 leading: _preview(doc),
-                title: Text(
-                  doc.title,
+                title: Text.rich(
+                  TextSpan(
+                    children: [
+                      if (doc.favorite)
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 6),
+                            child: Icon(
+                              Icons.star,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                              semanticLabel: s['favoritesOnly'],
+                            ),
+                          ),
+                        ),
+                      TextSpan(text: doc.title),
+                    ],
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                subtitle: Text(
-                  '${_size(doc.byteLength)} · ${s['page']} ${doc.lastPage} · ${doc.notes.length} ${s['notes']}',
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_size(doc.byteLength)} · ${_pageLabel(doc)} · ${doc.notes.length} ${s['notes']}',
+                    ),
+                    if (doc.progress != null && doc.lastOpenedAt != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: LinearProgressIndicator(
+                          value: doc.progress,
+                          minHeight: 3,
+                          borderRadius: BorderRadius.circular(2),
+                          semanticsLabel: _pageLabel(doc),
+                        ),
+                      ),
+                  ],
                 ),
                 onTap: _busy ? null : () => _run(() => _read(doc)),
                 trailing: PopupMenuButton<String>(
                   tooltip: s['tools'],
                   onSelected: (v) {
+                    if (v == 'favorite') unawaited(_toggleFavorite(doc));
+                    if (v == 'edit') unawaited(_editPages(doc));
                     if (v == 'rename') unawaited(_rename(doc));
                     if (v == 'remove') unawaited(_remove(doc));
                   },
                   itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'favorite',
+                      child: Text(s[doc.favorite ? 'unfavorite' : 'favorite']),
+                    ),
+                    PopupMenuItem(value: 'edit', child: Text(s['editPages'])),
                     PopupMenuItem(value: 'rename', child: Text(s['rename'])),
                     PopupMenuItem(value: 'remove', child: Text(s['delete'])),
                   ],
@@ -1261,6 +1427,7 @@ class _LibraryScreenState extends State<LibraryScreen>
         allDocuments,
         query: _query,
         sort: _sort,
+        favoritesOnly: _favoritesOnly,
       );
       final deviceView = _deviceSupported && _view == LibraryView.device;
       final apple =
@@ -1305,18 +1472,26 @@ class _LibraryScreenState extends State<LibraryScreen>
                           ),
                         ),
                       Padding(
-                        padding: EdgeInsets.all(wide ? 32 : 20),
+                        padding: wide
+                            ? const EdgeInsets.all(32)
+                            : const EdgeInsets.fromLTRB(16, 12, 16, 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              s['library'],
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(s['tagline']),
-                            const SizedBox(height: 24),
+                            // Phones already show the name in the app bar, so
+                            // the heading is left out to keep the list in view.
+                            if (wide) ...[
+                              Text(
+                                s['library'],
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(s['tagline']),
+                              const SizedBox(height: 24),
+                            ],
                             TextField(
                               controller: _searchController,
                               onChanged: (v) => setState(() => _query = v),
@@ -1332,7 +1507,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                                       ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: wide ? 16 : 12),
                             Wrap(
                               spacing: 12,
                               runSpacing: 12,
@@ -1352,7 +1527,7 @@ class _LibraryScreenState extends State<LibraryScreen>
                               ],
                             ),
                             if (_deviceSupported) ...[
-                              const SizedBox(height: 20),
+                              SizedBox(height: wide ? 20 : 12),
                               SegmentedButton<LibraryView>(
                                 key: const ValueKey('library-view'),
                                 showSelectedIcon: false,

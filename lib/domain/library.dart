@@ -23,6 +23,8 @@ class PaperSettings {
     this.pinnedTools = 0,
     this.readerPanelVisible = true,
     this.libraryRailCollapsed = false,
+    this.nightPages = false,
+    this.twoPages = false,
   });
   final Appearance appearance;
   final String language;
@@ -30,18 +32,28 @@ class PaperSettings {
   final int pinnedTools;
   final bool readerPanelVisible;
   final bool libraryRailCollapsed;
+
+  /// Reader shows pages with inverted colours for reading in the dark.
+  final bool nightPages;
+
+  /// Reader shows two pages side by side on wide screens.
+  final bool twoPages;
   PaperSettings copyWith({
     Appearance? appearance,
     String? language,
     int? pinnedTools,
     bool? readerPanelVisible,
     bool? libraryRailCollapsed,
+    bool? nightPages,
+    bool? twoPages,
   }) => PaperSettings(
     appearance: appearance ?? this.appearance,
     language: language ?? this.language,
     pinnedTools: pinnedTools ?? this.pinnedTools,
     readerPanelVisible: readerPanelVisible ?? this.readerPanelVisible,
     libraryRailCollapsed: libraryRailCollapsed ?? this.libraryRailCollapsed,
+    nightPages: nightPages ?? this.nightPages,
+    twoPages: twoPages ?? this.twoPages,
   );
   Map<String, Object?> toJson() => {
     'appearance': appearance.name,
@@ -49,6 +61,8 @@ class PaperSettings {
     'pinnedTools': pinnedTools,
     'readerPanelVisible': readerPanelVisible,
     'libraryRailCollapsed': libraryRailCollapsed,
+    'nightPages': nightPages,
+    'twoPages': twoPages,
   };
   factory PaperSettings.fromJson(Map<String, dynamic> json) {
     final appearance = json['appearance'];
@@ -56,10 +70,14 @@ class PaperSettings {
     final pinnedTools = json['pinnedTools'] ?? 0;
     final readerPanelVisible = json['readerPanelVisible'] ?? true;
     final libraryRailCollapsed = json['libraryRailCollapsed'] ?? false;
+    final nightPages = json['nightPages'] ?? false;
+    final twoPages = json['twoPages'] ?? false;
     if (!Appearance.values.any((v) => v.name == appearance) ||
         !['en', 'ar'].contains(language) ||
         readerPanelVisible is! bool ||
         libraryRailCollapsed is! bool ||
+        nightPages is! bool ||
+        twoPages is! bool ||
         pinnedTools is! int ||
         pinnedTools < 0 ||
         pinnedTools > 255) {
@@ -71,6 +89,8 @@ class PaperSettings {
       pinnedTools: pinnedTools,
       readerPanelVisible: readerPanelVisible,
       libraryRailCollapsed: libraryRailCollapsed,
+      nightPages: nightPages,
+      twoPages: twoPages,
     );
   }
 }
@@ -149,6 +169,8 @@ class PaperDocument {
     required this.importedAt,
     this.lastOpenedAt,
     this.lastPage = 1,
+    this.pageCount,
+    this.favorite = false,
     List<int> bookmarks = const [],
     List<PaperNote> notes = const [],
   }) : bookmarks = List.unmodifiable(bookmarks.toSet().toList()..sort()),
@@ -160,6 +182,7 @@ class PaperDocument {
         byteLength > maxImportBytes ||
         lastPage < 1 ||
         lastPage > 100000 ||
+        (pageCount != null && (pageCount! < 1 || pageCount! > 100000)) ||
         bookmarks.length > 10000 ||
         bookmarks.any((p) => p < 1 || p > 100000) ||
         notes.length > 10000 ||
@@ -171,12 +194,26 @@ class PaperDocument {
   final int byteLength, lastPage;
   final DateTime importedAt;
   final DateTime? lastOpenedAt;
+
+  /// Number of pages, learned the first time the reader opens the PDF.
+  final int? pageCount;
+  final bool favorite;
   final List<int> bookmarks;
   final List<PaperNote> notes;
+
+  /// Reading progress from 0 to 1, or null before the page count is known.
+  double? get progress {
+    final count = pageCount;
+    if (count == null) return null;
+    return count <= 1 ? 1 : ((lastPage - 1) / (count - 1)).clamp(0.0, 1.0);
+  }
+
   PaperDocument copyWith({
     String? title,
     DateTime? lastOpenedAt,
     int? lastPage,
+    int? pageCount,
+    bool? favorite,
     List<int>? bookmarks,
     List<PaperNote>? notes,
   }) => PaperDocument(
@@ -186,6 +223,8 @@ class PaperDocument {
     importedAt: importedAt,
     lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
     lastPage: lastPage ?? this.lastPage,
+    pageCount: pageCount ?? this.pageCount,
+    favorite: favorite ?? this.favorite,
     bookmarks: bookmarks ?? this.bookmarks,
     notes: notes ?? this.notes,
   );
@@ -196,6 +235,8 @@ class PaperDocument {
     'importedAt': importedAt.toUtc().toIso8601String(),
     'lastOpenedAt': lastOpenedAt?.toUtc().toIso8601String(),
     'lastPage': lastPage,
+    'pageCount': pageCount,
+    'favorite': favorite,
     'bookmarks': bookmarks,
     'notes': notes.map((n) => n.toJson()).toList(),
   };
@@ -208,6 +249,8 @@ class PaperDocument {
         ? null
         : DateTime.parse(_string(json, 'lastOpenedAt')),
     lastPage: _integer(json, 'lastPage'),
+    pageCount: json['pageCount'] == null ? null : _integer(json, 'pageCount'),
+    favorite: _optionalBool(json, 'favorite'),
     bookmarks: _list(json, 'bookmarks').map((v) {
       if (v is! int) throw const LibraryFormatException('Invalid bookmark.');
       return v;
@@ -339,5 +382,11 @@ int _integer(Map<String, dynamic> json, String key) {
 List<dynamic> _list(Map<String, dynamic> json, String key) {
   final v = json[key];
   if (v is! List) throw LibraryFormatException('Invalid $key.');
+  return v;
+}
+
+bool _optionalBool(Map<String, dynamic> json, String key) {
+  final v = json[key] ?? false;
+  if (v is! bool) throw LibraryFormatException('Invalid $key.');
   return v;
 }

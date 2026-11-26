@@ -1,10 +1,31 @@
 # Changelog
 
 Changes are recorded here before release. No binary version has been qualified
-by this repository review. `0.1.0-beta.2+2` is the current candidate version in
+by this repository review. `0.1.0-beta.3+3` is the current candidate version in
 `pubspec.yaml`, not a claim of an accepted installer.
 
 ## Unreleased
+
+### Page editing, favourites and reading modes — 2026-11-26
+
+- **Edit pages** (library menu and reader menu, all platforms): drag to reorder,
+  rotate, delete, keep only selected pages, reverse, and add pages from other
+  library PDFs or a chosen file (merge), with undo and a discard warning. Saving
+  creates a new library document; the originals stay byte-for-byte unchanged.
+  Protected PDFs are refused. Forms, signatures, outlines and app notes are not
+  carried over.
+- **Favourites**: mark documents from their menu and filter the library.
+- **Reading progress**: the page count is learned when a PDF is opened and the
+  library shows "Page X of Y" with a progress bar.
+- **Night pages**: inverted page colours with hue correction (display only).
+- **Two-page view** on wide screens, right-to-left pairs in Arabic.
+- On this device: sort reads "Date modified", quick filters for the busiest
+  folders (Download, WhatsApp, …).
+- Phones: the library heading is left out (the app bar shows the name) and the
+  Allow access button sits above the explanation, so it is visible without
+  scrolling.
+- Library metadata gains optional `favorite` and `pageCount`, settings gain
+  `nightPages` and `twoPages`; older libraries load unchanged.
 
 ### Device library, sharing and Cave theme — 2026-11-25
 

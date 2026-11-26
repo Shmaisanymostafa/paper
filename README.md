@@ -33,6 +33,13 @@ backend, advertising, analytics, remote font loading or app update service.
 - Annotation JSON import/export, bound to the exact PDF fingerprint.
 - New-file-only annotation export on macOS/Linux; explicit clipboard export on Windows/mobile.
 - Save selected/reordered/duplicated pages with optional rotation to a new PDF on macOS/Linux.
+- **Edit pages** on every platform: reorder by dragging, rotate, delete, keep only
+  selected pages (split), reverse, and merge pages from other PDFs, with undo. The
+  result is saved as a **new** library document; originals never change. Forms,
+  signatures, outlines and Cave Paper notes are not carried into the new PDF.
+- Favourites filter, reading progress ("Page 12 of 40") on each document,
+  folder quick filters for **On this device**.
+- Night pages (inverted page colours, display only) and a two-page view on wide screens.
 - Password dialog for encrypted PDFs, without saving passwords.
 - English/Arabic with RTL, locally bundled IBM Plex, Cave light/dark/black/system themes.
 - Checksummed metadata snapshots, serialized changes and previous-generation recovery.
@@ -49,7 +56,7 @@ and Windows offer native Share PDF with optional annotation JSON; actual native
 share-sheet acceptance on each target remains pending.
 
 Existing forms and annotations may render through PDFium. **Form filling/saving,
-editing existing PDF text/images, OCR, digital signatures, redaction,
+editing existing PDF text/images (page-level editing is supported), OCR, digital signatures, redaction,
 and background syncing are not implemented. Native open-with adapters and
 file-association metadata are implemented in source for all five targets, but
 remain unqualified until native platform acceptance. See

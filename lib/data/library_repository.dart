@@ -263,6 +263,16 @@ class LibraryRepository {
     ),
   );
 
+  Future<PaperLibrary> setReaderView({bool? nightPages, bool? twoPages}) =>
+      _mutate(
+        (state) => state.copyWith(
+          settings: state.settings.copyWith(
+            nightPages: nightPages,
+            twoPages: twoPages,
+          ),
+        ),
+      );
+
   Future<PaperLibrary> setLibraryRailCollapsed(bool collapsed) => _mutate(
     (state) => state.copyWith(
       settings: state.settings.copyWith(libraryRailCollapsed: collapsed),
