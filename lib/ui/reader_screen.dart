@@ -15,6 +15,7 @@ import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../domain/note_changes.dart';
 import '../services/document_share.dart';
+import '../services/pdf_annotation_writer.dart';
 import '../services/document_print.dart';
 import '../services/exclusive_file_save.dart';
 import '../services/page_copy.dart';
@@ -22,6 +23,7 @@ import 'strings.dart';
 import 'page_navigation.dart';
 import 'page_copy_dialog.dart';
 import 'page_editor_screen.dart';
+import '../domain/page_edit.dart';
 import 'spread_layout.dart';
 import 'reader_focus_frame.dart';
 import 'note_editor_dialog.dart';
@@ -48,6 +50,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   final _controller = PdfViewerController();
   final _documentShare = DocumentShare();
   bool _sharing = false, _printing = false, _copyingPages = false;
+  bool _savingHighlights = false;
   int _pinnedTools = 0;
   bool _pinsReady = false, _customizing = false, _focusMode = false;
   bool _encrypted = true, _allowsPrinting = false, _uniformPages = false;
@@ -195,6 +198,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         unawaited(_editPages());
       case 'copyPages':
         unawaited(_copyPages());
+      case 'saveHighlights':
+        unawaited(_saveWithHighlights());
       case 'customize':
         unawaited(_customizeToolbar());
       case 'note':
@@ -750,7 +755,8 @@ class _ReaderScreenState extends State<ReaderScreen>
     if (_sharing) return;
     setState(() => _sharing = true);
     try {
-      final includeNotes = await showDialog<bool>(
+      final canEmbed = !_encrypted && _document.notes.isNotEmpty;
+      final choice = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(s['shareDocument']),
@@ -761,17 +767,29 @@ class _ReaderScreenState extends State<ReaderScreen>
               child: Text(s['cancel']),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context, 'pdf'),
               child: Text(s['pdfOnly']),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'notes'),
               child: Text(s['pdfAndNotes']),
             ),
+            if (canEmbed)
+              FilledButton(
+                onPressed: () => Navigator.pop(context, 'embedded'),
+                child: Text(s['pdfWithHighlights']),
+              ),
           ],
         ),
       );
-      if (includeNotes == null || !mounted) return;
+      if (choice == null || !mounted) return;
+      final embedded = choice == 'embedded'
+          ? await PdfAnnotationWriter().build(
+              repository: widget.repository,
+              document: _document,
+            )
+          : null;
+      if (!mounted) return;
       final box = context.findRenderObject() as RenderBox?;
       if (box == null || !box.hasSize) return;
       // A valid anchor is required by the iPad and macOS native popover.
@@ -780,7 +798,8 @@ class _ReaderScreenState extends State<ReaderScreen>
         repository: widget.repository,
         document: _document,
         origin: origin,
-        includeAnnotations: includeNotes,
+        includeAnnotations: choice == 'notes',
+        pdfBytes: embedded,
         isActive: () => mounted && !_closing,
       );
     } catch (_) {
@@ -824,6 +843,28 @@ class _ReaderScreenState extends State<ReaderScreen>
       ),
     );
     if (saved != null) _message('editSaved');
+  }
+
+  /// Saves a new library copy with the notes written into the PDF.
+  Future<void> _saveWithHighlights() async {
+    if (_savingHighlights || _pageCount == 0 || _encrypted) return;
+    if (_document.notes.isEmpty) {
+      _message('highlightsNone');
+      return;
+    }
+    setState(() => _savingHighlights = true);
+    try {
+      await PdfAnnotationWriter().saveToLibrary(
+        repository: widget.repository,
+        document: _document,
+        title: editedTitle(_document.title, s['highlightedSuffix']),
+      );
+      _message('highlightsSaved');
+    } catch (_) {
+      _message('highlightsError');
+    } finally {
+      if (mounted) setState(() => _savingHighlights = false);
+    }
   }
 
   Future<void> _copyPages() async {
@@ -1329,6 +1370,18 @@ class _ReaderScreenState extends State<ReaderScreen>
                           child: _toolLabel(
                             Icons.auto_awesome_motion_outlined,
                             'editPages',
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'saveHighlights',
+                          enabled:
+                              ready &&
+                              !_encrypted &&
+                              !_savingHighlights &&
+                              _document.notes.isNotEmpty,
+                          child: _toolLabel(
+                            Icons.border_color_outlined,
+                            'saveWithHighlights',
                           ),
                         ),
                         const PopupMenuDivider(),

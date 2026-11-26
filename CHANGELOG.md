@@ -1,10 +1,24 @@
 # Changelog
 
 Changes are recorded here before release. No binary version has been qualified
-by this repository review. `0.1.0-beta.3+3` is the current candidate version in
+by this repository review. `0.1.0-beta.4+4` is the current candidate version in
 `pubspec.yaml`, not a claim of an accepted installer.
 
 ## Unreleased
+
+### Highlights saved into the PDF — 2026-11-26
+
+- **Save copy with highlights** (reader menu) and **PDF with highlights** (share
+  dialog) write Cave Paper's highlights and notes into a new copy of the PDF as
+  standard annotations, so other PDF apps show them: a highlight per passage,
+  with the note as its comment, and a sticky note for each page note. Written
+  through PDFium's own annotation functions (`pdfium_dart`, already shipped with
+  pdfrx, now a direct dependency together with `ffi`).
+- The copy is saved incrementally: the original bytes come first, unchanged, so
+  forms, outlines, links and existing annotations are kept. The library's
+  original file and its notes never change. Encrypted PDFs and PDFs that do not
+  allow annotation changes are refused.
+- Verified against real PDFium in tests and rendered by Apple PDFKit by hand.
 
 ### Page editing, favourites and reading modes — 2026-11-26
 

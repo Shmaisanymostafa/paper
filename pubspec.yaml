@@ -4,7 +4,7 @@ homepage: https://www.cave.technology
 repository: https://github.com/Shmaisanymostafa/paper
 issue_tracker: https://github.com/Shmaisanymostafa/paper/issues
 publish_to: none
-version: 0.1.0-beta.3+3
+version: 0.1.0-beta.4+4
 
 environment:
   sdk: '>=3.13.0 <4.0.0'
@@ -22,6 +22,8 @@ dependencies:
   share_plus: 13.3.0
   printing: 5.15.1
   pdf: 3.13.1
+  pdfium_dart: 0.4.1
+  ffi: 2.2.0
 
 dev_dependencies:
   flutter_test:

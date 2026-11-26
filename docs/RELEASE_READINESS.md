@@ -159,4 +159,5 @@ rerun in this review, and the owner's existing preview was not launched/replaced
 
 Follow [Release](RELEASE.md) for acceptance and publication. Full PDF text/image
 editing, OCR, secure redaction, form saving and digital signatures are outside
-this candidate; local annotations are sidecars rather than embedded PDF edits.
+this candidate. Local annotations are sidecars; they are embedded only into an
+explicitly saved or shared new copy, never into the original.

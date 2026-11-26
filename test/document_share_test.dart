@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cave_paper/data/library_repository.dart';
@@ -68,6 +69,30 @@ void main() {
         includeAnnotations: true,
       );
       await repo.verifyDocument(doc);
+      expect(await repo.documentFile(doc.id).readAsBytes(), pdf);
+    },
+  );
+
+  test(
+    'a PDF with notes written in is sent alone, original untouched',
+    () async {
+      final annotated = utf8.encode('%PDF-1.7\nannotated copy\n%%EOF');
+      final exporter = DocumentShare(
+        temporaryDirectory: () async => temp,
+        share: (params) async {
+          expect(params.files, hasLength(1));
+          expect(await params.files!.single.readAsBytes(), annotated);
+          expect(params.fileNameOverrides, ['Private report.pdf']);
+          return const ShareResult('', ShareResultStatus.dismissed);
+        },
+      );
+      await exporter.share(
+        repository: repo,
+        document: doc,
+        origin: origin,
+        includeAnnotations: false,
+        pdfBytes: Uint8List.fromList(annotated),
+      );
       expect(await repo.documentFile(doc.id).readAsBytes(), pdf);
     },
   );

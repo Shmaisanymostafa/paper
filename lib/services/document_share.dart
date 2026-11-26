@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:crypto/crypto.dart';
@@ -13,7 +14,9 @@ import 'package:path/path.dart' as p;
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 
-/// Explicit export only: never embeds notes, decrypts, or changes the PDF.
+/// Explicit export only: never decrypts or changes the library's PDF. Notes are
+/// sent as a separate file, or, when the caller passes [share]'s `pdfBytes`, as
+/// a new PDF copy that already has them written in.
 class DocumentShare {
   DocumentShare({
     Future<ShareResult> Function(ShareParams)? share,
@@ -36,6 +39,7 @@ class DocumentShare {
     required PaperDocument document,
     required Rect origin,
     required bool includeAnnotations,
+    Uint8List? pdfBytes,
     bool Function()? isActive,
   }) async {
     if (_busy) return;
@@ -57,10 +61,16 @@ class DocumentShare {
       // Bound the copy even if the source grows after verification, then verify
       // the staged bytes: the managed file may have changed during preparation.
       final copy = File(p.join(directory.path, '$title.pdf'));
-      await file.openRead(0, document.byteLength + 1).pipe(copy.openWrite());
-      if (await copy.length() != document.byteLength ||
-          (await sha256.bind(copy.openRead()).first).toString() !=
-              document.id) {
+      if (pdfBytes != null) {
+        // A copy derived from the verified original, with notes written in.
+        await copy.writeAsBytes(pdfBytes, flush: true);
+      } else {
+        await file.openRead(0, document.byteLength + 1).pipe(copy.openWrite());
+      }
+      if (await copy.length() != (pdfBytes?.length ?? document.byteLength) ||
+          (pdfBytes == null &&
+              (await sha256.bind(copy.openRead()).first).toString() !=
+                  document.id)) {
         throw const LibraryFormatException(
           'PDF copy is missing or changed. Import your original again.',
         );

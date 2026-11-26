@@ -45,8 +45,12 @@ backend, advertising, analytics, remote font loading or app update service.
 - Checksummed metadata snapshots, serialized changes and previous-generation recovery.
 - Explicit removal of the imported copy, never the selected original file.
 
-Annotations are **app-local sidecars**, not standard annotations embedded in a
-PDF. They are not redactions. Share the original PDF plus the exported annotation
+Annotations are **app-local sidecars** while you work; the original PDF is never
+changed. **Save copy with highlights** (reader menu) or **PDF with highlights**
+(share dialog) writes them into a *new* copy as standard PDF highlight and
+sticky-note annotations that other PDF apps show (unprotected PDFs only; saved
+incrementally so the original content, forms and links are kept). They are not
+redactions. Share the original PDF plus the exported annotation
 JSON to carry them to another Cave Paper installation. On macOS/Linux, Save As
 requires a new filename outside the library and refuses existing files or links.
 Windows/mobile use explicit copying of the JSON; native sharing can also attach
@@ -162,9 +166,10 @@ payment or deployment has been enabled.
 
 Reading remains offline. **Share PDF** is an explicit user action on Android,
 iOS, macOS and Windows. It hands an unchanged PDF copy to the OS share sheet,
-optionally with a separate, **unencrypted** annotation JSON file. The JSON can
-contain highlighted text from protected PDFs. PDF password protection is retained;
-notes are not embedded. Users choose the recipient/destination in the system UI.
+optionally with a separate, **unencrypted** annotation JSON file, or instead a new
+copy with the highlights and notes written in (unprotected PDFs only). The JSON
+can contain highlighted text from protected PDFs. PDF password protection is
+retained on the plain copy. Users choose the recipient/destination in the system UI.
 Recipients and the system cache may retain copies. A selected share action is not
 proof of delivery. Linux keeps the existing annotation Save As flow.
 
