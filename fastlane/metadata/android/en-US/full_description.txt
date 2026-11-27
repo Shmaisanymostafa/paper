@@ -1,0 +1,30 @@
+Cave Paper reads, marks up and organizes your PDFs entirely on your device. There is no account, no server, no ads, no analytics and no tracking. Your original files are never changed.
+
+<b>Private by design</b>
+• Works fully offline. Nothing is uploaded, synced or measured.
+• Highlights and notes are kept beside the PDF; saving them into a PDF always creates a new copy.
+• Passwords for protected PDFs are never saved.
+
+<b>Read</b>
+• Smooth scrolling and zoom, page jump and table of contents
+• Text search with highlighted results
+• Night pages and a two-page view on tablets
+• Continue reading where you left off
+
+<b>Mark up</b>
+• Highlights in six colours, page notes and bookmarks
+• Pen drawing
+• See highlights and comments other apps already put in a PDF
+
+<b>Save, share and edit pages</b>
+• Save a copy with your highlights as standard PDF annotations
+• Share or print a PDF
+• Reorder, rotate, delete, split and merge pages into a new PDF, with undo
+
+<b>Arabic and English</b>
+Full right-to-left layout and bundled IBM Plex fonts. Light, dark and black themes.
+
+<b>Open source</b>
+Cave Paper is free software under the MIT license: https://github.com/Shmaisanymostafa/paper
+
+Optional: "On this device" lists PDFs already on your phone. It needs All files access, which you grant in Android settings; it only reads file names and sizes, and a file is copied into your library only when you open it.

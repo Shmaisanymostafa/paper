@@ -27,7 +27,8 @@ contents, follows links, enters hidden folders or other apps' private
 `Android/data` and `Android/obb` folders, and its results are kept in memory
 only, never saved or sent anywhere. A file is copied into the library only when
 the person opens it. Revoke the access in Android settings at any time; the rest
-of the app keeps working. On desktop, the list covers Desktop, Documents and
+of the app keeps working. Google Play builds do not request All files access at
+all, so this list is unavailable there. On desktop, the list covers Desktop, Documents and
 Downloads (Windows/Linux) or folders the person picks in the system dialog.
 
 Library thumbnails are small PNG previews of each imported document's first

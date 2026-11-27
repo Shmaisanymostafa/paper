@@ -21,8 +21,10 @@ python3 tool/check.py
 
 Keep `pubspec.lock` committed. Do not use `pub upgrade` for unrelated fixes.
 Dependencies and native build hooks download code at build time; application
-runtime remains offline. Hosted CI is currently disabled; record actual local
-results in your pull request.
+runtime remains offline. GitHub Actions
+([check.yml](.github/workflows/check.yml)) runs `tool/check.py` and unsigned
+Linux, Windows, macOS and Android debug builds on every pull request; still
+record your local results in the pull request.
 
 ## Changes and verification
 

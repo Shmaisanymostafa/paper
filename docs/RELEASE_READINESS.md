@@ -1,5 +1,44 @@
 # Release-readiness review — 2026-11-18
 
+## Release preparation follow-up — 2026-11-27
+
+Implemented on `release/readiness-review`; nothing was released, signed,
+uploaded or deployed, and no signing key was created or changed.
+
+- **Windows/Linux PDFium (former blocker):** the printing plugin downloaded
+  PDFium chromium/5200 while pdfrx bundles chromium/8125, both under the same
+  file name in the same folder. `windows/pdfium_pin.cmake` and
+  `linux/pdfium_pin.cmake` pin the plugin to 8125 and fail the install unless the
+  bundled library matches the recorded SHA-256 for x64/arm64. A local CMake
+  harness confirmed the pin overrides the plugin default, a wrong library fails
+  the install and an unknown architecture fails configuration. Every PDFium
+  symbol the plugin uses exists in the 8125 headers, and the four archives carry
+  the same license texts as the bundled macOS notices
+  ([record](native-pdfium-windows-linux.json)). Real Windows/Linux builds run in
+  CI; installer and device acceptance remain open. Printing UI stays hidden there.
+- **Google Play:** `CAVE_STORE_BUILD=1` removes `MANAGE_EXTERNAL_STORAGE` from
+  the merged release manifest only. Gradle checks confirmed: normal release keeps
+  it, store release drops it, debug is unaffected; Kotlin release compilation
+  passes in both modes. The app reports the device list as unavailable when the
+  permission is not declared.
+- **CI:** `.github/workflows/check.yml` (free for public repositories) runs
+  `tool/check.py` and unsigned Linux/Windows/macOS release and Android debug
+  builds. It replaces the earlier "hosted CI disabled" preference at the owner's
+  request.
+- **About version** now comes from `lib/app_version.dart`, tested against
+  `pubspec.yaml`.
+- **Marketing/open source:** product README with screenshots, technical detail
+  in [Development](DEVELOPMENT.md), English/Arabic store text in
+  `fastlane/metadata/android` (read by IzzyOnDroid/F-Droid).
+- **Checks:** `python3 tool/check.py` passed: 166 Flutter tests (8 optional
+  skipped), 36 Python tests, audit, notices, format and analysis clean.
+
+Still open before publishing binaries: Android distribution key (owner),
+device acceptance on each advertised target, Apple Developer ID
+signing/notarization or disclosed unsigned status, the first green CI run,
+branch protection and GitHub private vulnerability reporting (repository
+settings), and the release itself.
+
 ## Android installation follow-up — 2026-11-19
 
 The later local APK was inspected after an installation failure on a Samsung A50

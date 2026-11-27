@@ -1,0 +1,10 @@
+<!-- Store-build overlay, merged only into release builds made with
+     CAVE_STORE_BUILD=1 (see android/app/build.gradle.kts). Google Play reserves
+     All files access for file managers and similar apps, so store builds leave
+     it out and the opt-in "On this device" list reports itself unavailable. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+</manifest>

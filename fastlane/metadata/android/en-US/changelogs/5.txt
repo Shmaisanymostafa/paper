@@ -1,0 +1,1 @@
+First public beta: offline PDF reading, highlights in six colours, notes, pen drawing, page editing, saving highlights into a new PDF copy, Arabic and English.

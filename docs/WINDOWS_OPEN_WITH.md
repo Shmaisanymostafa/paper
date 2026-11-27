@@ -69,8 +69,9 @@ Packaging is deliberately compile-blocked unless `PaperNativeQualified` is
 explicitly defined after dependency, notice, signing and native acceptance gates
 are met. `PaperVersion` and `PaperBuildDir` must also be supplied, with the latter
 pointing at a qualified Flutter Windows x64 Release bundle. The compile flag is
-an operator acknowledgement, not automatic proof of qualification. Do not enable
-it while the printing plugin's unverified PDFium dependency is unresolved.
+an operator acknowledgement, not automatic proof of qualification. The printing
+plugin's PDFium is now pinned and hash-checked (`windows/pdfium_pin.cmake`);
+the remaining native acceptance gates still apply.
 
 Seven Python source-regression checks cover per-user scope, the exact registry
 allowlist, command quoting, shared-key preservation and qualification guard.

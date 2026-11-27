@@ -6,6 +6,25 @@ by this repository review. `0.1.0-beta.5+5` is the current candidate version in
 
 ## Unreleased
 
+### Release preparation — 2026-11-27
+
+- **Windows/Linux PDFium fix:** pdfrx and the printing plugin both bundled a
+  PDFium library under the same file name, from different releases (8125 and
+  5200), so one silently replaced the other. The runners now pin the printing
+  plugin to pdfrx's chromium/8125 and the install step fails unless the bundled
+  library matches the recorded SHA-256 (`windows/pdfium_pin.cmake`,
+  `linux/pdfium_pin.cmake`, `docs/native-pdfium-windows-linux.json`).
+- **Google Play build:** `CAVE_STORE_BUILD=1` leaves All files access out of the
+  release manifest; the device list then reports itself unavailable. Default
+  builds are unchanged.
+- **About** shows the real version from one constant, checked against
+  `pubspec.yaml` by a test.
+- **GitHub Actions** runs `tool/check.py` and unsigned Linux, Windows, macOS
+  and Android debug builds on pull requests and `main`.
+- README rewritten as a short product page; detailed scope and limits moved to
+  `docs/DEVELOPMENT.md`. Store listing text (English/Arabic) added under
+  `fastlane/metadata/android`.
+
 ### Pen, colours, highlights inside PDFs and default-app check — 2026-11-26
 
 - **Draw with pen** (reader menu): one finger draws, two fingers zoom; six

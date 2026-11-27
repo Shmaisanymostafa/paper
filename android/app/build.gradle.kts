@@ -12,6 +12,13 @@ val releaseSigningFile = rootProject.file("key.properties")
 val releaseSigningConfigured = releaseSigningFile.isFile
 val allowUnsignedRelease =
     providers.gradleProperty("cave.allowUnsignedRelease").orNull == "true"
+// Store builds (Google Play) leave out All files access, which Play reserves for
+// file managers and similar apps. The opt-in "On this device" list then reports
+// itself unavailable; opening, sharing to and "Open with" Cave Paper still work.
+// Enable with CAVE_STORE_BUILD=1 or -Pcave.storeBuild=true.
+val storeBuild =
+    providers.gradleProperty("cave.storeBuild").orNull == "true" ||
+        providers.environmentVariable("CAVE_STORE_BUILD").orNull == "1"
 val releaseSigning = Properties()
 if (releaseSigningConfigured) {
     releaseSigningFile.inputStream().use { releaseSigning.load(it) }
@@ -58,6 +65,11 @@ android {
                 keyPassword = releaseSigning.getProperty("keyPassword")
             }
         }
+    }
+
+    if (storeBuild) {
+        // Release-only overlay; debug/profile keep the full manifest.
+        sourceSets.getByName("release").manifest.srcFile("src/store/AndroidManifest.xml")
     }
 
     buildTypes {

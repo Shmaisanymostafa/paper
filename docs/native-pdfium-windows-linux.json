@@ -1,0 +1,43 @@
+{
+  "release": "chromium/8125",
+  "version": "158.0.8125.0",
+  "recordedOn": "2026-11-27",
+  "consumers": [
+    "pdfium_dart 0.4.1 build hook (pdfrx 2.12.0), constant _pdfiumRelease",
+    "printing 5.15.1 Windows/Linux plugin, PDFIUM_VERSION pinned by windows/pdfium_pin.cmake and linux/pdfium_pin.cmake"
+  ],
+  "enforcement": "The runner install step fails unless the single bundled library equals binarySha256 for the target.",
+  "targets": [
+    {
+      "platform": "windows-x64",
+      "source": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F8125/pdfium-win-x64.tgz",
+      "archiveSha256": "9a964261760cff52570aabf038ab346d3a5034dd8b30d0d5fe8861235d356b8b",
+      "binary": "bin/pdfium.dll",
+      "binarySha256": "4b0dec92555d69437bef0df37be630181ab3e83a6823ca264ede355a4f2ef994"
+    },
+    {
+      "platform": "windows-arm64",
+      "source": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F8125/pdfium-win-arm64.tgz",
+      "archiveSha256": "d394ba61991fb53f4d87f70988035f337d9e73f2bd2c3c1b966df8c43fcabb05",
+      "binary": "bin/pdfium.dll",
+      "binarySha256": "61b3500520d2f7ec2f8074851ba941b1470e85b8849e6efe5966ef2ce676c1f3"
+    },
+    {
+      "platform": "linux-x64",
+      "source": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F8125/pdfium-linux-x64.tgz",
+      "archiveSha256": "e1c3ce6e270cb5e0c20816b379ad9f2c1309972697c505f508de92bf5e7d6659",
+      "binary": "lib/libpdfium.so",
+      "binarySha256": "1c251efce460d67437a4c76d4be9033ae2f17bf5603f5bff1af10209b94ca723"
+    },
+    {
+      "platform": "linux-arm64",
+      "source": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F8125/pdfium-linux-arm64.tgz",
+      "archiveSha256": "8b8818f2ec57d1b213d952ca6d7f0ffeca9d0110487d0e20ad83ba918bc92efa",
+      "binary": "lib/libpdfium.so",
+      "binarySha256": "8cdc437dce84a6493b9ec6c4f5ad9ff2c299e505acfd7b0ad38cb440805b2c70"
+    }
+  ],
+  "notices": "All four archives contain the same 18 license files as the macOS arm64 archive bundled in assets/notices/native-macos-arm64. Seventeen are identical after line-ending normalization; licenses/pdfium.txt has the same words but without the '//' comment prefixes. The in-app notices therefore cover these targets.",
+  "pluginApiCheck": "Every FPDF function and type used by printing 5.15.1 (windows/*.cpp, linux/*.cc) is declared in the chromium/8125 headers.",
+  "runtimeLimit": "Printing UI stays hidden on Windows/Linux: the printing plugin calls FPDF_InitLibraryWithConfig/FPDF_DestroyLibrary on the same library the reader uses."
+}

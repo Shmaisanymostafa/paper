@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../app_version.dart';
 import '../data/library_repository.dart';
 import '../domain/library.dart';
 import '../services/default_pdf_app.dart';
@@ -683,7 +684,7 @@ class _LibraryScreenState extends State<LibraryScreen>
   void _about() => showAboutDialog(
     context: context,
     applicationName: s.appName,
-    applicationVersion: '0.1.0 beta',
+    applicationVersion: appVersion,
     applicationLegalese: '© 2026 Cave · MIT',
     applicationIcon: Image.asset(
       'assets/branding/app-logo.png',

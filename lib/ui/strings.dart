@@ -73,7 +73,7 @@ class PaperStrings {
     'viewDevice': 'On this device',
     'continueReading': 'Continue reading',
     'deviceAccessTitle': 'Find the PDFs already on your phone',
-    'deviceAccessDetail': 'To list them, Android needs you to turn on “All files access” for Cave Paper. Paper only reads file names and sizes to build this list. Nothing leaves your device, and a file is copied into your library only when you open it.',
+    'deviceAccessDetail': 'To list them, Android needs you to turn on “All files access” for Cave Paper. Cave Paper only reads file names and sizes to build this list. Nothing leaves your device, and a file is copied into your library only when you open it.',
     'deviceAllow': 'Allow access',
     'devicePending': 'Turn on “Allow access to manage all files” for Cave Paper, then come back here.',
     'deviceDenied': 'Access is off. You can still open PDFs one at a time with “Open a PDF”.',

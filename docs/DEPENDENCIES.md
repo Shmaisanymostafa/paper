@@ -9,12 +9,17 @@ No dependency version was changed in this review. The raw macOS arm64 PDFium
 hook output matches the recorded `a45c4464…` binary hash; Flutter's packaged
 copy can differ after Mach-O wrapping/signing and must be qualified separately.
 
-The Windows/Linux printing plugin's additional parser download remains a
-release blocker. The pinned pdfium_dart 0.4.1 hook also downloads its Chromium
-8125 target archive without enforcing an archive hash and extracts only the
-library. Android and other targets therefore need independent exact-artifact
-integrity, advisory and notice checks; the Apple notice reconciliation below
-does not qualify them. A successful build alone does not close this gate.
+On Windows/Linux the printing plugin and pdfrx both bundled a PDFium library
+with the same file name into the same folder (printing defaulted to chromium/5200,
+pdfrx uses chromium/8125). Since 2026-11-27 `windows/pdfium_pin.cmake` and
+`linux/pdfium_pin.cmake` pin the printing plugin to chromium/8125 and the install
+step fails unless the one bundled library matches the recorded SHA-256 for the
+target, which covers both downloads. Hashes, notice comparison and the plugin
+API check are in [native-pdfium-windows-linux.json](native-pdfium-windows-linux.json).
+The pinned pdfium_dart 0.4.1 hook itself still downloads its archive without an
+archive hash; Android has no install-time check yet and needs its own
+exact-artifact integrity, advisory and notice review. A successful build alone
+does not close that gate.
 
 Use `python3 tool/license_inventory.py --check` for non-mutating verification.
 Regenerate notices only after an intentional dependency update and review the
@@ -36,7 +41,7 @@ inventory, not a claim that every resolved binary has been qualified.
 | pdfrx_engine | MIT | Transitive engine selected by pdfrx; not manually overridden |
 | PDFium native builds | BSD-style + third-party licenses | Exact artifacts/notices must be collected and inspected |
 | file_selector 1.0.4 | BSD-3-Clause | Open on all five targets; Save As unavailable on Android/iOS |
-| printing 5.15.1 / pdf 3.13.1 | Apache-2.0 | Explicit system print dialog; package license texts collected. Windows/Linux extra PDFium 5200 unverified download blocks release; Apple uses system PDF rendering. |
+| printing 5.15.1 / pdf 3.13.1 | Apache-2.0 | Explicit system print dialog; package license texts collected. Windows/Linux PDFium pinned to pdfrx's chromium/8125 and hash-checked at install (printing UI hidden there); Apple uses system PDF rendering. |
 | share_plus 13.3.0 | BSD-3-Clause | Native user-initiated file sharing; source/license inspected, exact transitive notices collected; device acceptance pending |
 | path_provider 2.1.5 | BSD-3-Clause | Native app support directory, no web target |
 | crypto 3.0.7 / path 1.9.1 | BSD-3-Clause | Hashing and safe managed paths |

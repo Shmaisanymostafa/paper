@@ -55,6 +55,8 @@ add_subdirectory("runner")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+# Pin the printing plugin to pdfrx's PDFium; must precede the plugins.
+include(pdfium_pin.cmake)
 include(flutter/generated_plugins.cmake)
 
 
@@ -106,3 +108,6 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Last install rule: the single bundled PDFium must be the pinned build.
+cave_verify_bundled_pdfium("${INSTALL_BUNDLE_LIB_DIR}")

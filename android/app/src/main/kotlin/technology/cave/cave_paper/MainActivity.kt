@@ -62,7 +62,13 @@ class MainActivity : FlutterActivity() {
             "technology.cave.paper/storage")
         storageChannel!!.setMethodCallHandler { call, result ->
             when (call.method) {
-                "status" -> result.success(if (storageGranted()) "granted" else "denied")
+                "status" -> result.success(
+                    when {
+                        !allFilesAccessDeclared() -> "unavailable"
+                        storageGranted() -> "granted"
+                        else -> "denied"
+                    }
+                )
                 "request" -> requestStorage(result)
                 "roots" -> result.success(storageRoots())
                 else -> result.notImplemented()
@@ -133,7 +139,25 @@ class MainActivity : FlutterActivity() {
                 PackageManager.PERMISSION_GRANTED
         }
 
+    // Store builds remove MANAGE_EXTERNAL_STORAGE from the merged manifest; the
+    // device list is then unavailable rather than opening a settings screen
+    // that cannot grant it.
+    private fun allFilesAccessDeclared(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return true
+        val requested = try {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
+                .requestedPermissions
+        } catch (_: Exception) {
+            null
+        }
+        return requested?.contains(Manifest.permission.MANAGE_EXTERNAL_STORAGE) == true
+    }
+
     private fun requestStorage(result: MethodChannel.Result) {
+        if (!allFilesAccessDeclared()) {
+            result.success("unavailable")
+            return
+        }
         if (storageGranted()) {
             result.success("granted")
             return

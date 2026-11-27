@@ -72,6 +72,8 @@ set_target_properties(${BINARY_NAME}
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+# Pin the printing plugin to pdfrx's PDFium; must precede the plugins.
+include(pdfium_pin.cmake)
 include(flutter/generated_plugins.cmake)
 
 
@@ -126,3 +128,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Last install rule: the single bundled PDFium must be the pinned build.
+cave_verify_bundled_pdfium("${INSTALL_BUNDLE_LIB_DIR}")

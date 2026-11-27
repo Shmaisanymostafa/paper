@@ -24,9 +24,10 @@ Signing/notarization must not be claimed when absent.
       hooks, SDK/engine notices and the installed offline license screen. Follow
       [Dependencies](DEPENDENCIES.md) and [Third-party notices](../THIRD_PARTY_NOTICES.md).
 
-Hosted CI remains disabled under the recorded project preference. Run checks
-locally and record scoped results in pull requests. Enabling hosted workflows
-is a separate maintainer decision.
+GitHub Actions ([check.yml](../.github/workflows/check.yml)) runs the same
+`tool/check.py` plus unsigned Linux, Windows, macOS and Android debug builds on
+pull requests and `main`. It never signs, uploads or publishes. A green run is
+a build check, not native acceptance; still record local results.
 
 ## Native platform gates
 
@@ -47,14 +48,33 @@ The simulator command checks compilation; it does not produce a distributable iO
 | macOS | Release build; cold/warm Open With and Save As; selection/thumbnails; sandbox permissions; packaged notices; runtime traffic check; disclose ad-hoc/unsigned status or qualify distribution signing/notarization |
 | Android | APK/AAB build; inspect merged release permissions/signing identity; physical picker/content URI/chooser, sharing/printing; exact native provenance/notices |
 | iOS | Appropriate native build; physical Files/Open In and provider permissions; security-scoped lifetime; sharing/printing/notices; provisioning for device distribution |
-| Windows | Qualify/replace printing plugin PDFium download; native build; Inno compile/install/uninstall; per-user Open With/IPC, sharing and notices |
-| Linux | Qualify/replace printing plugin PDFium download; native build; installed desktop entry/session bus and PDF opening; Save As/notices |
+| Windows | Green CI Windows build (PDFium pin verified at install); native build; Inno compile/install/uninstall; per-user Open With/IPC, sharing and notices |
+| Linux | Green CI Linux build (PDFium pin verified at install); native build; installed desktop entry/session bus and PDF opening; Save As/notices |
 
-Windows/Linux printing UI is hidden, but the plugin remains in the build graph.
-Its additional parser download has no archive hash enforcement and remains a
-release blocker until replaced or qualified. The pdfrx Android/native hook also
-requires exact target archive integrity and notices; Apple reconciliation alone
-does not qualify Android. Do not treat a Dart UI restriction as a dependency fix.
+Windows/Linux printing UI stays hidden: the printing plugin initializes and
+destroys the same PDFium library the reader uses. Its download is pinned to
+pdfrx's chromium/8125 and the runner install step refuses any bundled PDFium
+that is not the recorded build ([provenance](native-pdfium-windows-linux.json)).
+When pdfrx changes its PDFium release, update both pin files and that record.
+The pdfrx Android hook still needs exact target archive integrity and notices;
+Apple reconciliation alone does not qualify Android.
+
+### Android: direct download vs. Google Play
+
+The default Android build declares `MANAGE_EXTERNAL_STORAGE` for the opt-in
+**On this device** list. That suits GitHub Releases, IzzyOnDroid and F-Droid-style
+channels. Google Play reserves All files access for file managers and similar
+apps and usually rejects it for PDF readers, so Play uploads use a store build:
+
+```sh
+CAVE_STORE_BUILD=1 flutter build appbundle --release
+```
+
+It removes `MANAGE_EXTERNAL_STORAGE` from the merged release manifest only
+(`android/app/src/store/AndroidManifest.xml`); the app then reports the device
+list as unavailable. Opening, Share to Cave Paper and Open with keep working.
+Inspect the merged manifest of every Play upload. Both builds share the
+application ID and signing key, so either can update the other.
 
 ### Android signing
 
