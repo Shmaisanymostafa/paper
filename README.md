@@ -1,4 +1,14 @@
-# Cave Paper
+<p align="center">
+  <img src="docs/readme-assets/product-icon.png" alt="Cave Paper icon" width="240">
+</p>
+
+<p align="center">
+  Powered by&nbsp;
+  <a href="https://cave.technology"><img src="docs/readme-assets/cave-mark.png" alt="Cave logo" height="22" align="middle"></a>
+  &nbsp;<a href="https://cave.technology"><b>Cave</b></a>
+</p>
+
+<h1 align="center">Cave Paper</h1>
 
 **A quiet, private PDF workspace. Open source. Offline. No account.**
 
